@@ -5,21 +5,22 @@ ini2 = 'boss 1'
 ini3 = 'minion 2'
 def batalha():
     if hp1 > 0: 
-        print('\n\n\n',ini1,'\natk = ',atk1,'\nHP = ',hp1,'\n', sep='')
+        print('\n\n\n',ini1,'\nATK = ',atk1,'\nHP = ',hp1,'\n', sep='')
     else:
-        print('\n\n\n',ini1,'\nmorto\n', sep='')
+        print('\n\n\n',ini1,'\nMorto\n', sep='')
     if hp2 > 0: 
-        print(ini2,'\natk =',atk2,'\nHP =',hp2,'\n')
+        print(ini2,'\nATK =',atk2,'\nHP =',hp2,'\n')
     else:
-        print(ini2,'\nmorto\n')
+        print(ini2,'\nInimigo morto\n')
     if hp3 > 0: 
-        print(ini3,'\natk =',atk3,'\nHP =',hp3,'\n\n\n')
+        print(ini3,'\nATK =',atk3,'\nHP =',hp3,'\n\n\n')
     else:
-        print(ini3,'\nmorto\n')
+        print(ini3,'\nInimigo morto\n')
     if hp > 0:
-        print(classe,'\natk =',atk,'\nHP =',hp,'\n')
+        print(classe,'\nATK =',atk,'\nHP =',hp,'\n')
     else:
-        print('você\nderrotado(a)\n')
+        print('Você foi \nderrotado(a)\n')
+
 esc = False
 while not esc:
     atk1 = inimigos.get(ini1)[1]
