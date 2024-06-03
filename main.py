@@ -10,14 +10,15 @@ def main():
 
         opcao = input("Opção: ")
 
-        if opcao == "1":
-            acessar_caixa()
-        elif opcao == "2":
-            acessar_estoque()
-        elif opcao == "3":
-            break
-        else:
-            print("Opção inválida. Tente novamente.")
-
+        match opcao:
+            case "1":
+                acessar_caixa()
+            case "2":
+                acessar_estoque()
+            case "3":
+                break
+            case other:
+                print("OPÇÃO INVÁLIDA!")
+                
 if __name__ == "__main__":
     main()
