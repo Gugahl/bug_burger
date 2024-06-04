@@ -3,12 +3,12 @@ from caixa import acessar_caixa
 
 def main():
     while True:
-        print("Selecione a ação:")
+        print("\nSelecione a ação:")
         print("1. Acessar Caixa")
         print("2. Estoque")
         print("3. Sair")
 
-        opcao = input("Opção: ")
+        opcao = input("")
 
         match opcao:
             case "1":
@@ -18,7 +18,7 @@ def main():
             case "3":
                 break
             case other:
-                print("OPÇÃO INVÁLIDA!")
-                
+                print("\033[31mOPÇÃO INVÁLIDA!\033[m Insira uma das opções válidas.")
+
 if __name__ == "__main__":
     main()

@@ -1,5 +1,9 @@
 import os
 
+estoque = [{"nome": "x-burguer", "qtd": 20}]
+venda = {"data": "2024-06-03 21:00:33","produto": "PASSAPORTE DE FRANGO","qtd": 2, "preco": 20.0}
+vendas = [{"data": "2024-06-03 21:00:33","produto": "PASSAPORTE DE FRANGO","qtd": 2, "preco": 20.0}, {"data": "2024-06-03 21:00:33","produto": "PASSAPORTE DE FRANGO","qtd": 3, "preco": 30.0}]
+
 # Função para ler o estoque do arquivo
 def ler_estoque(nome_arquivo):
     estoque = []
@@ -86,7 +90,7 @@ def acessar_estoque():
                     input("Aperte enter para voltar...")
                 else:
                     # Mostra uma tabela contendo os produtos e suas quantidades no estoque
-                    print("PRODUTO\t\tQUANTIDADE")
+                    print("PRODUTO\t\tESTOQUE")
                     for i in estoque:
                         print(f"{i['nome']}\t\t{i['qtd']}")
                     input("Aperte enter para voltar...")

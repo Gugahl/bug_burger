@@ -38,25 +38,34 @@ def acessar_caixa():
                 venda = {"data": None, "produto": None, "qtd": None, "preco": None}
                 venda["data"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 venda["produto"] = input("Insira o nome do produto vendido: ").upper()
+                
                 # Verifica se o produto está no estoque
-                produto_estoque = next((item for item in estoque if item["nome"] == venda["produto"]), None)
+                produto_estoque = None
+                for item in estoque:
+                    if item["nome"] == venda["produto"]:
+                        produto_estoque = item
+                        break
+                
                 if not produto_estoque:
                     print("PRODUTO NÃO ENCONTRADO NO ESTOQUE!")
                     input("Aperte enter para voltar...")
                     continue
+                
                 # Verifica se a quantidade inserida é um valor numérico inteiro e positivo
                 while True:
                     venda["qtd"] = input("Insira a quantidade vendida: ")
                     if not venda["qtd"].isnumeric() or int(venda["qtd"]) <= 0:
-                        print("POR FAVOR INSIRA SOMENTE NÚMEROS INTEIROS E POSITIVOS!!!!")
+                        print("POR FAVOR INSIRA SOMENTE NÚMEROS, QUE SEJAM INTEIROS E POSITIVOS!!!!")
                     else:
                         venda["qtd"] = int(venda["qtd"])
                         break
+                
                 # Verifica se há quantidade suficiente no estoque
                 if venda["qtd"] > produto_estoque["qtd"]:
                     print("QUANTIDADE INSUFICIENTE NO ESTOQUE!")
                     input("Aperte enter para voltar...")
                     continue
+                
                 # Verifica se o preço inserido é um valor numérico positivo
                 while True:
                     preco = input("Insira o preço unitário do produto vendido: ")
@@ -65,12 +74,14 @@ def acessar_caixa():
                         break
                     else:
                         print("POR FAVOR INSIRA SOMENTE NÚMEROS POSITIVOS!!!!")
+                
                 # Atualiza a quantidade no estoque
                 produto_estoque["qtd"] -= venda["qtd"]
                 # Remove o produto do estoque se a quantidade for zero
                 if produto_estoque["qtd"] == 0:
                     estoque.remove(produto_estoque)
                 escrever_estoque("estoque.txt", estoque)  # Escreve estoque atualizado
+                
                 # Adiciona a venda ao histórico
                 vendas.append(venda)
                 escrever_vendas(nome_arquivo_vendas, vendas)  # Escreve histórico atualizado
