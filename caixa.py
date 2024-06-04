@@ -2,50 +2,52 @@ from datetime import datetime
 import os
 from estoque import ler_estoque, escrever_estoque
 
+# Comece pela linha 25
 # Função para ler o histórico de vendas do arquivo
 def ler_vendas(nome_arquivo):
-    vendas = []
-    if os.path.exists(nome_arquivo):
-        arquivo = open(nome_arquivo, 'r')
-        for linha in arquivo:
-            data, produto, qtd, preco = linha.strip().split(',')
-            vendas.append({"data": data, "produto": produto, "qtd": int(qtd), "preco": float(preco)})
-        arquivo.close()
-    return vendas
+    vendas = []  # Cria uma lista vazia
+    if os.path.exists(nome_arquivo):  # Se o arquivo do histórico de arquivos existir
+        arquivo = open(nome_arquivo, 'r')  # Abre o arquivo e lê ele
+        for linha in arquivo:  # Para cada linha no arquivo
+            data, produto, qtd, preco = linha.strip().split(',')  # Formata a string
+            vendas.append({"data": data, "produto": produto, "qtd": int(qtd), "preco": float(preco)})  # Transforma a venda em um dicionário e coloca ela dentro da lista
+        arquivo.close()  # Fecha o arquivo
+    return vendas  # Retorna a lista vendas
 
 # Função para escrever o histórico de vendas no arquivo
 def escrever_vendas(nome_arquivo, vendas):
-    arquivo = open(nome_arquivo, 'w')
-    for venda in vendas:
-        arquivo.write(f"{venda['data']},{venda['produto']},{venda['qtd']},{venda['preco']}\n")
+    arquivo = open(nome_arquivo, 'w')  # Abre o arquivo e lê ele
+    for venda in vendas:  # Para cada índice (dicionário), dentro da lista
+        arquivo.write(f"{venda['data']},{venda['produto']},{venda['qtd']},{venda['preco']}\n")  # Escreve o dicionário venda
     arquivo.close()
 
 # Função para acessar o caixa
 def acessar_caixa():
-    nome_arquivo_vendas = 'historico.txt'
-    vendas = ler_vendas(nome_arquivo_vendas)
+    nome_arquivo_vendas = 'historico.txt'  # Nome do arquivo que computará as vendas, ta numa variável, pois vai ser utilizado mais tarde
+    vendas = ler_vendas(nome_arquivo_vendas)  # Ler o histórico de vendas antes de cada operação
     estoque = ler_estoque("estoque.txt")  # Ler estoque antes de cada operação
     while True:
         print("""\nO que você deseja fazer:
 1) Registrar venda
 2) Ver histórico de vendas
 3) Calcular total vendido
-4) Voltar ao menu principal""")
+4) Voltar ao menu principal""")  # Menu principal
         escolha = input()
-        match escolha:
+        match escolha:  # Match case é um ifelse statement que não consegue fazer comparações, só ler valores
             case "1":
                 # Dicionário para guardar os detalhes da venda
-                venda = {"data": None, "produto": None, "qtd": None, "preco": None}
-                venda["data"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                venda = {"data": None, "produto": None, "qtd": None, "preco": None}  # Declara um dicionário vazio para ser preenchido e assim computada a venda
+                venda["data"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Pega o horário do seu pc que vc fez a venda
                 venda["produto"] = input("Insira o nome do produto vendido: ").upper()
                 
                 # Verifica se o produto está no estoque
-                produto_estoque = None
-                for item in estoque:
-                    if item["nome"] == venda["produto"]:
+                produto_estoque = None  
+                for item in estoque:  # Estoque é uma lista, assim como vendas, que também recebe dicionários, que é o nome do produto e a quantidade de produtos disponíveis, o item se refere ao índice de estoque (dicionários), mais informações em estoque.py
+                    if item["nome"] == venda["produto"]:  # Se o valor da chave nome de item for igual ao valor da chave produto de venda temos que
                         produto_estoque = item
                         break
                 
+                # Se produto_estoque não tiver nada
                 if not produto_estoque:
                     print("PRODUTO NÃO ENCONTRADO NO ESTOQUE!")
                     input("Aperte enter para voltar...")
@@ -53,7 +55,7 @@ def acessar_caixa():
                 
                 # Verifica se a quantidade inserida é um valor numérico inteiro e positivo
                 while True:
-                    venda["qtd"] = input("Insira a quantidade vendida: ")
+                    venda["qtd"] = input("Insira a quantidade vendida: ")  # Aqui você declara o valor da chave qtd
                     if not venda["qtd"].isnumeric() or int(venda["qtd"]) <= 0:
                         print("POR FAVOR INSIRA SOMENTE NÚMEROS, QUE SEJAM INTEIROS E POSITIVOS!!!!")
                     else:
@@ -73,7 +75,7 @@ def acessar_caixa():
                         venda["preco"] = float(preco)
                         break
                     else:
-                        print("POR FAVOR INSIRA SOMENTE NÚMEROS POSITIVOS!!!!")
+                        print("POR FAVOR INSIRA SOMENTE NÚMEROS, E QUE SEJAM POSITIVOS!!!!")
                 
                 # Atualiza a quantidade no estoque
                 produto_estoque["qtd"] -= venda["qtd"]
@@ -84,6 +86,10 @@ def acessar_caixa():
                 
                 # Adiciona a venda ao histórico
                 vendas.append(venda)
+                # Apaga as compras anteriores assim que completa 13 vendas
+                if len(vendas) > 12:
+                    vendas = []
+                    vendas.append(venda)
                 escrever_vendas(nome_arquivo_vendas, vendas)  # Escreve histórico atualizado
                 print("VENDA REGISTRADA COM SUCESSO!")
                 input("Aperte enter para voltar...")
@@ -96,7 +102,7 @@ def acessar_caixa():
                     # Mostra uma tabela contendo o histórico de vendas
                     print("DATA\t\t\tPRODUTO\t\tQTD\tPREÇO UNITÁRIO")
                     for venda in vendas:
-                        print(f"{venda['data']}\t{venda['produto']}\t{venda['qtd']}\t{venda['preco']}")
+                        print(f"{venda['data']}\t{venda['produto']}\t\t{venda['qtd']}\t{venda['preco']}")
                     input("Aperte enter para voltar...")
             case "3":
                 # Calcula o total vendido

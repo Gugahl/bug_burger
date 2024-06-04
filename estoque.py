@@ -1,9 +1,5 @@
 import os
 
-estoque = [{"nome": "x-burguer", "qtd": 20}]
-venda = {"data": "2024-06-03 21:00:33","produto": "PASSAPORTE DE FRANGO","qtd": 2, "preco": 20.0}
-vendas = [{"data": "2024-06-03 21:00:33","produto": "PASSAPORTE DE FRANGO","qtd": 2, "preco": 20.0}, {"data": "2024-06-03 21:00:33","produto": "PASSAPORTE DE FRANGO","qtd": 3, "preco": 30.0}]
-
 # Função para ler o estoque do arquivo
 def ler_estoque(nome_arquivo):
     estoque = []
