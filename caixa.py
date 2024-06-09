@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from tkinter import *
 from tkinter import messagebox
-from estoque import ler_estoque, escrever_estoque
+from estoque import *
 
 altura = 720
 largura = 1280
@@ -23,8 +23,8 @@ def escrever_vendas(nome_arquivo, vendas):
         for venda in vendas:
             arquivo.write(f"{venda['data']},{venda['produto']},{venda['qtd']},{venda['preco']}\n")
 
-def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_qtd, entry_preco):
-    venda = {"data": None, "produto": None, "qtd": None, "preco": 0}
+def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_qtd):
+    venda = {"data": None, "produto": None, "qtd": None, "preco": None}
     venda["data"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     venda["produto"] = entry_produto.get().upper()
 
@@ -46,14 +46,13 @@ def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_q
         messagebox.showerror("Erro", "QUANTIDADE INSUFICIENTE NO ESTOQUE!")
         return
 
-    # Adciona o preço do produto
-    float(venda["preco"]) += produto_estoque["preco"]
-
     # Atualiza a quantidade no estoque
     produto_estoque["qtd"] -= venda["qtd"]
     if produto_estoque["qtd"] == 0:
         estoque.remove(produto_estoque)
     escrever_estoque("estoque.txt", estoque)
+
+    venda["preco"] = produto_estoque["preco"]
 
     # Adiciona a venda ao histórico
     vendas.append(venda)
@@ -64,7 +63,6 @@ def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_q
     messagebox.showinfo("Sucesso", "VENDA REGISTRADA COM SUCESSO!")
     entry_produto.delete(0, END)
     entry_qtd.delete(0, END)
-    entry_preco.delete(0, END)
 
 def historico_vendas(frame, vendas):
     frame_historico = Frame(frame, bd=8, bg='#BEBEBE', highlightbackground='black', highlightthickness=3)
@@ -144,12 +142,8 @@ def acessar_caixa(root):
             entry_qtd = Entry(frame_registrar)
             entry_qtd.place(relx=0.35, rely=0.15, relwidth=0.5, relheight=0.05)
 
-            Label(frame_registrar, text="Preço Unitário", bg='#BEBEBE').place(relx=0.15, rely=0.25, relwidth=0.2, relheight=0.05)
-            entry_preco = Entry(frame_registrar)
-            entry_preco.place(relx=0.35, rely=0.25, relwidth=0.5, relheight=0.05)
-
-            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, self.nome_arquivo_vendas, entry_produto, entry_qtd, entry_preco), bg='#C0C0C0')
-            bt_confirmar.place(relx=0.35, rely=0.35, relwidth=0.3, relheight=0.1)
+            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, self.nome_arquivo_vendas, entry_produto, entry_qtd), bg='#C0C0C0')
+            bt_confirmar.place(relx=0.35, rely=0.25, relwidth=0.3, relheight=0.1)
 
             bt_voltar = Button(frame_registrar, text="Voltar ao menu anterior", command=frame_registrar.destroy, bg='#C0C0C0')
             bt_voltar.place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)

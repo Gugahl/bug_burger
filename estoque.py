@@ -8,6 +8,7 @@ largura = 1280
 def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco):
     nome = entry_nome.get().upper()
     qtd = entry_qtd.get()
+    preco = entry_preco.get()
 
     if not qtd.isnumeric() or int(qtd) <= 0:
         messagebox.showerror("ERRO!", "POR FAVOR INSIRA SOMENTE NÚMEROS INTEIROS E POSITIVOS!!!!")
@@ -21,7 +22,7 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
         return
     preco = float(preco)
     
-    produto = {"nome": nome, "qtd": qtd, "preco" = preco}
+    produto = {"nome": nome, "qtd": qtd, "preco": preco}
 
     if len(estoque) == 0:
         estoque.append(produto)
@@ -35,11 +36,12 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
                 break
         if not existe:
             estoque.append(produto)
-            messagebox.showinfo("SUCESSO!", f"{produto['qtd']} UNIDADES DE '{produto['nome']}' FORAM ADICIONADAS AO ESTOQUE")
+            messagebox.showinfo("SUCESSO!", f"{produto['qtd']} UNIDADES DE '{produto['nome']}' DE PREÇO 'R${produto['preco']}' FORAM ADICIONADAS AO ESTOQUE")
 
     escrever_estoque(nome_arquivo, estoque)
     entry_nome.delete(0, END)
     entry_qtd.delete(0, END)
+    entry_preco.delete(0, END)
 
 def remover_produto(estoque, nome_arquivo, entry_nome):
     nome = entry_nome.get().upper()
@@ -63,9 +65,9 @@ def obter_estoque(estoque):
     if len(estoque) == 0:
         messagebox.showinfo("Informação", "ESTOQUE VAZIO...")
     else:
-        estoque_str = "PRODUTO\t\tESTOQUE\n"
+        estoque_str = "PRODUTO\t\tESTOQUE\t\tPREÇO\n"
         for i in estoque:
-            estoque_str += f"{i['nome']}\t\t{i['qtd']}\t\t{i['preco']}\n"
+            estoque_str += f"{i['nome']}\t\t{i['qtd']}\t\tR${i['preco']}\n"
         messagebox.showinfo("Estoque", estoque_str)
 
 def ler_estoque(nome_arquivo):
@@ -73,14 +75,14 @@ def ler_estoque(nome_arquivo):
     if os.path.exists(nome_arquivo):
         with open(nome_arquivo, 'r') as arquivo:
             for linha in arquivo:
-                nome, qtd = linha.strip().split(',')
-                estoque.append({"nome": nome, "qtd": int(qtd)})
+                nome, qtd, preco = linha.strip().split(',')
+                estoque.append({"nome": nome, "qtd": int(qtd), "preco": float(preco)})
     return estoque
 
 def escrever_estoque(nome_arquivo, estoque):
     with open(nome_arquivo, 'w') as arquivo:
         for item in estoque:
-            arquivo.write(f"{item['nome']},{item['qtd']}\n")
+            arquivo.write(f"{item['nome']},{item['qtd']},{item['preco']}\n")
 
 def acessar_estoque(root=None):
     nome_arquivo = "estoque.txt"
@@ -144,9 +146,14 @@ def acessar_estoque(root=None):
             entry_qtd = Entry(frame_adicionar)
             entry_qtd.place(relx=0.35, rely=0.15, relwidth=0.5, relheight=0.05)
 
+            # Campo para o preço do produto
+            Label(frame_adicionar, text="Preço", bg='#BEBEBE').place(relx=0.15, rely=0.25, relwidth=0.2, relheight=0.05)
+            entry_preco = Entry(frame_adicionar)
+            entry_preco.place(relx=0.35, rely=0.25, relwidth=0.5, relheight=0.05)
+
             # Botão confirmar adicionar
-            self.bt_confirmar = Button(frame_adicionar, text="Confirmar", command=lambda: adicionar_produto(self.estoque, self.nome_arquivo, entry_nome, entry_qtd), bg='#C0C0C0')
-            self.bt_confirmar.place(relx=0.35, rely=0.25, relwidth=0.3, relheight=0.1)
+            self.bt_confirmar = Button(frame_adicionar, text="Confirmar", command=lambda: adicionar_produto(self.estoque, self.nome_arquivo, entry_nome, entry_qtd, entry_preco), bg='#C0C0C0')
+            self.bt_confirmar.place(relx=0.35, rely=0.35, relwidth=0.3, relheight=0.1)
 
             # Botão voltar ao menu anterior
             Button(frame_adicionar, text="Voltar ao menu anterior", command=frame_adicionar.destroy, bg='#C0C0C0').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
