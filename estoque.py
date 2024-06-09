@@ -92,12 +92,12 @@ def acessar_estoque(root=None):
     class Application:
         def __init__(self):
             self.root = root
-            self.estoque = estoque
-            self.nome_arquivo = nome_arquivo
+            self.estoque = []
+            self.nome_arquivo = "estoque.txt"
             self.tela()
             self.frames()
             self.objetos_frame1()
-            root.mainloop()
+            self.root.mainloop()
 
         def tela(self):
             self.altura = altura
@@ -125,11 +125,11 @@ def acessar_estoque(root=None):
             self.bt_remover.place(relx=0.35, rely=0.35, relwidth=0.3, relheight=0.1)
 
             # Botão ver estoque
-            self.bt_ver_estoque = Button(self.frame1, text='Ver estoque', command=lambda: obter_estoque(self.estoque), bg='#C0C0C0')
+            self.bt_ver_estoque = Button(self.frame1, text='Ver estoque', command=self.ver_estoque, bg='#C0C0C0')
             self.bt_ver_estoque.place(relx=0.35, rely=0.50, relwidth=0.3, relheight=0.1)
 
             # Botão voltar para o menu principal
-            self.bt_sair = Button(self.frame1, text='Voltar ao menu principal', command=root.destroy, bg='#C0C0C0')
+            self.bt_sair = Button(self.frame1, text='Voltar ao menu principal', command=self.root.destroy, bg='#C0C0C0')
             self.bt_sair.place(relx=0.35, rely=0.65, relwidth=0.3, relheight=0.1)
 
         def form_adicionar_produto(self):
@@ -171,6 +171,21 @@ def acessar_estoque(root=None):
             
             # Botão voltar ao menu anterior
             Button(frame_remover, text="Voltar ao menu anterior", command=frame_remover.destroy, bg='#C0C0C0').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
+
+        def ver_estoque(self):
+            frame_verestoque = Frame(self.frame1, bd=8, bg='#BEBEBE', highlightbackground='black', highlightthickness=3)
+            frame_verestoque.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+
+            if len(self.estoque) == 0:
+                Label(frame_verestoque, text="Estoque Vazio...", font=('arialblack', 30), bg='#BEBEBE').place(relx=0.35, rely=0.05, relwidth=0.3, relheight=0.1)
+            else:
+                estoque_str = "PRODUTO\t\tESTOQUE\t\tPREÇO\n"
+                for item in self.estoque:
+                    estoque_str += f"{item['nome']}\t\t{item['qtd']}\t\tR${item['preco']}\n"
+                Label(frame_verestoque, text=estoque_str, font=('Arial', 12)).pack(pady=20)
+                
+            # Botão voltar ao menu anterior
+            Button(frame_verestoque, text="Voltar ao menu anterior", command=frame_verestoque.destroy, bg='#C0C0C0').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
     
     app = Application()
     root.mainloop()
