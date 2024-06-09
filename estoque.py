@@ -5,19 +5,27 @@ from tkinter import messagebox
 altura = 720
 largura = 1280
 
-def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd):
+def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco):
     nome = entry_nome.get().upper()
     qtd = entry_qtd.get()
 
     if not qtd.isnumeric() or int(qtd) <= 0:
-        messagebox.showerror("Erro", "POR FAVOR INSIRA SOMENTE NÚMEROS INTEIROS E POSITIVOS!!!!")
+        messagebox.showerror("ERRO!", "POR FAVOR INSIRA SOMENTE NÚMEROS INTEIROS E POSITIVOS!!!!")
         return
-
     qtd = int(qtd)
-    produto = {"nome": nome, "qtd": qtd}
+
+    preco = entry_preco.get()
+
+    if not preco.isdigit() or float(preco) <= 0:
+        messagebox.showerror("EERO!","POR FAVOR INSIRA SOMENTE VALORES NUMÉRICOS E ACIMA DE ZERO!!!!")
+        return
+    preco = float(preco)
+    
+    produto = {"nome": nome, "qtd": qtd, "preco" = preco}
 
     if len(estoque) == 0:
         estoque.append(produto)
+        messagebox.showinfo("SUCESSO!", f"{produto['qtd']} UNIDADES DE '{produto['nome']}' FORAM ADICIONADAS AO ESTOQUE")
     else:
         existe = False
         for i in estoque:
@@ -27,8 +35,8 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd):
                 break
         if not existe:
             estoque.append(produto)
+            messagebox.showinfo("SUCESSO!", f"{produto['qtd']} UNIDADES DE '{produto['nome']}' FORAM ADICIONADAS AO ESTOQUE")
 
-    messagebox.showinfo("Sucesso", f"{produto['qtd']} UNIDADES DE '{produto['nome']}' FORAM ADICIONADAS AO ESTOQUE")
     escrever_estoque(nome_arquivo, estoque)
     entry_nome.delete(0, END)
     entry_qtd.delete(0, END)
@@ -54,7 +62,7 @@ def obter_estoque(estoque):
     else:
         estoque_str = "PRODUTO\t\tESTOQUE\n"
         for i in estoque:
-            estoque_str += f"{i['nome']}\t\t{i['qtd']}\n"
+            estoque_str += f"{i['nome']}\t\t{i['qtd']}\t\t{i['preco']}\n"
         messagebox.showinfo("Estoque", estoque_str)
 
 def ler_estoque(nome_arquivo):
