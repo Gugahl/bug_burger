@@ -45,16 +45,19 @@ def remover_produto(estoque, nome_arquivo, entry_nome):
     nome = entry_nome.get().upper()
 
     if len(estoque) == 0:
-        messagebox.showinfo("Erro", "NÃO HÁ NENHUM PRODUTO NO SEU ESTOQUE!")
+        messagebox.showinfo("ERRO!", "NÃO HÁ NENHUM PRODUTO NO SEU ESTOQUE!")
     else:
+        existe = False
         for i in estoque:
             if i.get('nome') == nome:
+                existe = True
                 estoque.remove(i)
-                messagebox.showinfo("Sucesso", "PRODUTO REMOVIDO COM SUCESSO!")
+                messagebox.showinfo("SUCESSO!", "PRODUTO REMOVIDO COM SUCESSO!")
                 escrever_estoque(nome_arquivo, estoque)
                 entry_nome.delete(0, END)
                 return
-        messagebox.showerror("Erro", f"ERRO! NÃO HÁ PRODUTO CHAMADO '{nome}' NO ESTOQUE")
+        if not existe:
+            messagebox.showerror("ERRO!", f"ERRO! NÃO HÁ PRODUTO CHAMADO '{nome}' NO ESTOQUE")
 
 def obter_estoque(estoque):
     if len(estoque) == 0:
