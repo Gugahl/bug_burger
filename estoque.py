@@ -21,7 +21,7 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
         return
     preco = float(preco)
     
-    produto = {"nome": nome, "qtd": qtd, "preco" = preco}
+    produto = {"nome": nome, "qtd": qtd, "preco": preco}
 
     if len(estoque) == 0:
         estoque.append(produto)
