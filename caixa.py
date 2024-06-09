@@ -24,7 +24,7 @@ def escrever_vendas(nome_arquivo, vendas):
             arquivo.write(f"{venda['data']},{venda['produto']},{venda['qtd']},{venda['preco']}\n")
 
 def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_qtd, entry_preco):
-    venda = {"data": None, "produto": None, "qtd": None, "preco": None}
+    venda = {"data": None, "produto": None, "qtd": None, "preco": 0}
     venda["data"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     venda["produto"] = entry_produto.get().upper()
 
@@ -46,12 +46,8 @@ def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_q
         messagebox.showerror("Erro", "QUANTIDADE INSUFICIENTE NO ESTOQUE!")
         return
 
-    # Verifica se o preço inserido é um valor numérico positivo
-    preco = entry_preco.get()
-    if not (preco.replace('.', '', 1).isdigit() and float(preco) > 0):
-        messagebox.showerror("Erro", "POR FAVOR INSIRA SOMENTE NÚMEROS, E QUE SEJAM POSITIVOS!!!!")
-        return
-    venda["preco"] = float(preco)
+    # Adciona o preço do produto
+    float(venda["preco"]) += produto_estoque["preco"]
 
     # Atualiza a quantidade no estoque
     produto_estoque["qtd"] -= venda["qtd"]
