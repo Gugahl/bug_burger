@@ -197,4 +197,3 @@ def acessar_estoque(root=None):
 # Exemplo de chamada à função principal
 if __name__ == "__main__":
     acessar_estoque()
-
