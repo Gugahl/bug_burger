@@ -15,18 +15,18 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
         return
     qtd = int(qtd)
 
-    preco = entry_preco.get()
-
-    if not preco.isdigit() or float(preco) <= 0:
-        messagebox.showerror("EERO!","POR FAVOR INSIRA SOMENTE VALORES NUMÉRICOS E ACIMA DE ZERO!!!!")
+    try:
+        preco = float(preco)
+        if preco <= 0:
+            raise ValueError
+    except ValueError:
+        messagebox.showerror("ERRO!", "POR FAVOR INSIRA SOMENTE VALORES NUMÉRICOS E ACIMA DE ZERO!!!!")
         return
-    preco = float(preco)
-    
+
     produto = {"nome": nome, "qtd": qtd, "preco": preco}
 
     if len(estoque) == 0:
         estoque.append(produto)
-        messagebox.showinfo("SUCESSO!", f"{produto['qtd']} UNIDADES DE '{produto['nome']}' FORAM ADICIONADAS AO ESTOQUE")
     else:
         existe = False
         for i in estoque:
@@ -36,9 +36,9 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
                 break
         if not existe:
             estoque.append(produto)
-            messagebox.showinfo("SUCESSO!", f"{produto['qtd']} UNIDADES DE '{produto['nome']}' DE PREÇO 'R${produto['preco']}' FORAM ADICIONADAS AO ESTOQUE")
 
     escrever_estoque(nome_arquivo, estoque)
+    messagebox.showinfo("SUCESSO!", f"{produto['qtd']} UNIDADES DE '{produto['nome']}' DE PREÇO 'R${produto['preco']}' FORAM ADICIONADAS AO ESTOQUE")
     entry_nome.delete(0, END)
     entry_qtd.delete(0, END)
     entry_preco.delete(0, END)
@@ -90,10 +90,10 @@ def acessar_estoque(root=None):
     root = Tk()
     
     class Application:
-        def __init__(self):
+        def __init__(self, root):
             self.root = root
-            self.estoque = []
-            self.nome_arquivo = "estoque.txt"
+            self.estoque = ler_estoque(nome_arquivo)
+            self.nome_arquivo = nome_arquivo
             self.tela()
             self.frames()
             self.objetos_frame1()
@@ -182,14 +182,14 @@ def acessar_estoque(root=None):
                 estoque_str = "PRODUTO\t\tESTOQUE\t\tPREÇO\n"
                 for item in self.estoque:
                     estoque_str += f"{item['nome']}\t\t{item['qtd']}\t\tR${item['preco']}\n"
-                Label(frame_verestoque, text=estoque_str, font=('Arial', 12)).pack(pady=20)
+                Label(frame_verestoque, text=estoque_str, font=('Arial', 12), bg='#BEBEBE').pack(pady=20)
                 
             # Botão voltar ao menu anterior
             Button(frame_verestoque, text="Voltar ao menu anterior", command=frame_verestoque.destroy, bg='#C0C0C0').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
     
-    app = Application()
+    app = Application(root)
     root.mainloop()
 
 # Exemplo de chamada à função principal
 if __name__ == "__main__":
-    acessar_estoque(None)
+    acessar_estoque()
