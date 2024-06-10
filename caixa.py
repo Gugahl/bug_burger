@@ -110,6 +110,11 @@ def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
 def exibir_graficos(frame, vendas):
     frame_graficos = Frame(frame, bd=8, bg='#BEBEBE', highlightbackground='black', highlightthickness=3)
     frame_graficos.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+
+    if not os.path.exists('historico.csv'):
+        Label(frame_graficos, text="NENHUM DADO COMPUTADO...", bg='#BEBEBE').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
+        Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#C0C0C0').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+        return
     
     # Calcular os produtos mais vendidos por quantidade
     produtos_vendidos = Counter(venda["produto"] for venda in vendas)
@@ -144,7 +149,7 @@ def exibir_graficos(frame, vendas):
     canvas2.get_tk_widget().place(relx=0.52, rely=0.02, relwidth=0.45, relheight=0.86)
 
     # Botão para voltar ao menu anterior
-    Button(frame_graficos, text="Voltar ao menu anterior", command=frame_graficos.destroy, bg='#C0C0C0').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+    Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#C0C0C0').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
 
 # Função para exibir o histórico de vendas
 def historico_vendas(frame, vendas):
