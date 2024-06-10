@@ -1,4 +1,5 @@
 import os
+import csv
 from tkinter import *
 from tkinter import messagebox
 
@@ -74,18 +75,21 @@ def ler_estoque(nome_arquivo):
     estoque = []
     if os.path.exists(nome_arquivo):
         with open(nome_arquivo, 'r') as arquivo:
-            for linha in arquivo:
-                nome, qtd, preco = linha.strip().split(',')
-                estoque.append({"nome": nome, "qtd": int(qtd), "preco": float(preco)})
+            leitor_csv = csv.DictReader(arquivo)
+            for linha in leitor_csv:
+                estoque.append({"nome": linha['nome'], "qtd": int(linha['qtd']), "preco": float(linha['preco'])})
     return estoque
 
 def escrever_estoque(nome_arquivo, estoque):
-    with open(nome_arquivo, 'w') as arquivo:
+    with open(nome_arquivo, 'w', newline='') as arquivo:
+        cabecalho = ['nome', 'qtd', 'preco']
+        escritor_csv = csv.DictWriter(arquivo, fieldnames=cabecalho)
+        escritor_csv.writeheader()
         for item in estoque:
-            arquivo.write(f"{item['nome']},{item['qtd']},{item['preco']}\n")
+            escritor_csv.writerow(item)
 
 def acessar_estoque(root=None):
-    nome_arquivo = "estoque.txt"
+    nome_arquivo = "estoque.csv"
     estoque = ler_estoque(nome_arquivo)
     root = Tk()
     
@@ -193,3 +197,4 @@ def acessar_estoque(root=None):
 # Exemplo de chamada à função principal
 if __name__ == "__main__":
     acessar_estoque()
+

@@ -30,7 +30,8 @@ def escrever_vendas(nome_arquivo, vendas):
     with open(nome_arquivo, 'w', newline='') as arquivo:
         writer = csv.writer(arquivo)
         for venda in vendas:
-            writer.writerow([venda['data'], venda['produto'], venda['qtd'], venda['preco'], venda['meio_pagamento']])
+            preco_formatado = round(venda['preco'], 2)  # Limita o preço a dois pontos flutuantes após a vírgula
+            writer.writerow([venda['data'], venda['produto'], venda['qtd'], preco_formatado, venda['meio_pagamento']])
 
 # Função para registrar uma venda
 def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_qtd, entry_meio_pagamento, label_preco):
@@ -106,48 +107,44 @@ def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
         label_preco.config(text="Preço: -")
 
 # Função para exibir os gráficos do caixa
-def exibir_graficos(frame=None, vendas=None):
-    # Ler o estoque e as vendas
-    estoque = ler_estoque("estoque.txt")
-    vendas = ler_vendas("historico.csv")
-
+def exibir_graficos(frame, vendas):
+    frame_graficos = Frame(frame, bd=8, bg='#BEBEBE', highlightbackground='black', highlightthickness=3)
+    frame_graficos.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+    
     # Calcular os produtos mais vendidos por quantidade
     produtos_vendidos = Counter(venda["produto"] for venda in vendas)
     produtos_mais_vendidos = produtos_vendidos.most_common()
-
+    
     # Calcular os meios de pagamento mais utilizados
     meios_pagamento = Counter(venda["meio_pagamento"] for venda in vendas)
     meios_pagamento_utilizados = meios_pagamento.most_common()
-
-    # Criar e configurar a janela
-    root = Tk()
-    root.title("Gráficos de Pizza")
-    root.geometry("800x600")
-
+    
     # Criar e exibir o gráfico de pizza dos produtos mais vendidos por quantidade
-    fig1 = plt.figure(figsize=(5, 5))
+    fig1 = plt.figure(figsize=(4, 4), facecolor='#BEBEBE')
     ax1 = fig1.add_subplot(111)
     produtos, quantidades = zip(*produtos_mais_vendidos)
     ax1.pie(quantidades, labels=produtos, autopct='%1.1f%%', startangle=140)
     ax1.set_title('Produtos mais vendidos por quantidade')
-
-    canvas1 = FigureCanvasTkAgg(fig1, master=root)
+    ax1.set_facecolor('#BEBEBE')  # Define a cor de fundo do gráfico
+    
+    canvas1 = FigureCanvasTkAgg(fig1, master=frame_graficos)
     canvas1.draw()
-    canvas1.get_tk_widget().pack(side=LEFT, fill=BOTH, expand=1)
-
+    canvas1.get_tk_widget().place(relx=0.02, rely=0.02, relwidth=0.45, relheight=0.86)
+    
     # Criar e exibir o gráfico de pizza dos meios de pagamento mais utilizados
-    fig2 = plt.figure(figsize=(5, 5))
+    fig2 = plt.figure(figsize=(4, 4), facecolor='#BEBEBE')
     ax2 = fig2.add_subplot(111)
     meios, frequencias = zip(*meios_pagamento_utilizados)
     ax2.pie(frequencias, labels=meios, autopct='%1.1f%%', startangle=140)
     ax2.set_title('Meios de pagamento mais utilizados')
-
-    canvas2 = FigureCanvasTkAgg(fig2, master=root)
+    ax2.set_facecolor('#BEBEBE')  # Define a cor de fundo do gráfico
+    
+    canvas2 = FigureCanvasTkAgg(fig2, master=frame_graficos)
     canvas2.draw()
-    canvas2.get_tk_widget().pack(side=RIGHT, fill=BOTH, expand=1)
+    canvas2.get_tk_widget().place(relx=0.52, rely=0.02, relwidth=0.45, relheight=0.86)
 
-    # Executar o loop principal da janela
-    root.mainloop()
+    # Botão para voltar ao menu anterior
+    Button(frame_graficos, text="Voltar ao menu anterior", command=frame_graficos.destroy, bg='#C0C0C0').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
 
 # Função para exibir o histórico de vendas
 def historico_vendas(frame, vendas):
@@ -168,7 +165,7 @@ def historico_vendas(frame, vendas):
         Label(frame_historico, text=historico, bg='#BEBEBE').place(relx=0.05, rely=0.15, relwidth=0.9, relheight=0.7)
 
         # Botão para exibir os gráficos
-        Button(frame_historico, text="Exibir Gráficos", command=exibir_graficos, bg='#C0C0C0').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
+        Button(frame_historico, text="Exibir Gráficos", command=lambda: exibir_graficos(frame_historico, vendas), bg='#C0C0C0').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
 
     # Botão para voltar ao menu anterior
     Button(frame_historico, text="Voltar ao menu anterior", command=frame_historico.destroy, bg='#C0C0C0').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
@@ -178,7 +175,7 @@ def acessar_caixa(root=None):
     nome_arquivo_vendas = 'historico.csv'
     # Lê o histórico de vendas e o estoque do arquivo
     vendas = ler_vendas(nome_arquivo_vendas)
-    estoque = ler_estoque("estoque.txt")
+    estoque = ler_estoque("estoque.csv")
     root = Tk()
 
     # Classe principal da aplicação
@@ -255,16 +252,11 @@ def acessar_caixa(root=None):
             bt_confirmar.place(relx=0.35, rely=0.40, relwidth=0.3, relheight=0.1)
 
             bt_voltar = Button(frame_registrar, text="Voltar ao menu anterior", command=frame_registrar.destroy, bg='#C0C0C0')
-            bt_voltar.place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
+            bt_voltar.place(relx=0.35, rely=0.55, relwidth=0.3, relheight=0.1)
 
-    # Se a janela principal não for fornecida, cria uma nova
-    if root is None:
-        root = Tk()
-    # Inicializa a aplicação
-    app = Application(root)
+    Application(root)
     root.mainloop()
 
 # Chamada à função principal
 if __name__ == "__main__":
     acessar_caixa(None)
-
