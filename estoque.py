@@ -181,7 +181,7 @@ def acessar_estoque(root=None):
             frame_verestoque.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
 
             if len(self.estoque) == 0:
-                Label(frame_verestoque, text="Estoque Vazio...", font=('arialblack', 30), bg='#BEBEBE').place(relx=0.35, rely=0.05, relwidth=0.3, relheight=0.1)
+                Label(frame_verestoque, text="ESTOQUE VAZIO...", bg='#BEBEBE').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
             else:
                 estoque_str = "PRODUTO\t\tESTOQUE\t\tPREÇO\n"
                 for item in self.estoque:
