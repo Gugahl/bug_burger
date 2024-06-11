@@ -64,7 +64,7 @@ def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_q
     produto_estoque["qtd"] -= venda["qtd"]
     if produto_estoque["qtd"] == 0:
         estoque.remove(produto_estoque)
-    escrever_estoque("estoque.txt", estoque)
+    escrever_estoque("estoque.csv", estoque)
 
     # Calcula o preço da venda
     venda["preco"] = produto_estoque["preco"]
@@ -72,9 +72,6 @@ def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_q
     # Adiciona a escolha do meio de pagamento
     meio_pagamento = entry_meio_pagamento.get()
     venda["meio_pagamento"] = meio_pagamento
-    if "cartão de crédito" in meio_pagamento:
-        parcelas = int(meio_pagamento.split()[-1].strip("x"))
-        venda["preco"] *= (1 + 0.005 * (parcelas - 1))
 
     # Adiciona a venda ao histórico
     vendas.append(venda)
@@ -108,42 +105,75 @@ def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
 
 # Função para exibir os gráficos do caixa
 def exibir_graficos(frame, vendas):
+    # Criação de um frame para exibir os gráficos
     frame_graficos = Frame(frame, bd=8, bg='#BEBEBE', highlightbackground='black', highlightthickness=3)
     frame_graficos.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
 
-    if not os.path.exists('historico.csv'):
+    # Verificação se o arquivo de histórico existe e se há dados de vendas
+    if not os.path.exists('historico.csv') or not vendas:
+        # Exibir mensagem de erro se não houver dados
         Label(frame_graficos, text="NENHUM DADO COMPUTADO...", bg='#BEBEBE').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
+        # Botão para voltar ao menu anterior
         Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#C0C0C0').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
         return
     
-    # Calcular os produtos mais vendidos por quantidade
-    produtos_vendidos = Counter(venda["produto"] for venda in vendas)
-    produtos_mais_vendidos = produtos_vendidos.most_common()
+    # Inicialização dos contadores para produtos vendidos e meios de pagamento
+    produtos_vendidos = Counter()
+    meios_pagamento = Counter()
+
+    # Processamento dos dados de vendas
+    for venda in vendas:
+        produto = venda.get("produto")
+        meio_pagamento = venda.get("meio_pagamento")
+        quantidade = venda.get("quantidade", 1)
+        
+        # Verificação e adição da quantidade vendida ao contador de produtos
+        if produto and isinstance(quantidade, int) and quantidade > 0:
+            produtos_vendidos[produto] += quantidade
+        # Adição do meio de pagamento ao contador
+        if meio_pagamento:
+            meios_pagamento[meio_pagamento] += 1
     
-    # Calcular os meios de pagamento mais utilizados
-    meios_pagamento = Counter(venda["meio_pagamento"] for venda in vendas)
+    # Obtenção dos produtos mais vendidos e meios de pagamento mais utilizados
+    produtos_mais_vendidos = produtos_vendidos.most_common()
     meios_pagamento_utilizados = meios_pagamento.most_common()
     
-    # Criar e exibir o gráfico de pizza dos produtos mais vendidos por quantidade
+    # Criação e exibição do gráfico de pizza para produtos mais vendidos
     fig1 = plt.figure(figsize=(4, 4), facecolor='#BEBEBE')
     ax1 = fig1.add_subplot(111)
-    produtos, quantidades = zip(*produtos_mais_vendidos)
-    ax1.pie(quantidades, labels=produtos, autopct='%1.1f%%', startangle=140)
+    
+    if produtos_mais_vendidos:
+        # Dados para o gráfico de pizza
+        produtos, quantidades = zip(*produtos_mais_vendidos)
+        ax1.pie(quantidades, labels=produtos, autopct='%1.1f%%', startangle=140)
+    else:
+        # Exibir mensagem se não houver dados
+        ax1.pie([1], labels=["Sem dados"], startangle=140)
+
     ax1.set_title('Produtos mais vendidos por quantidade')
     ax1.set_facecolor('#BEBEBE')  # Define a cor de fundo do gráfico
     
+    # Adicionar o gráfico ao frame
     canvas1 = FigureCanvasTkAgg(fig1, master=frame_graficos)
     canvas1.draw()
     canvas1.get_tk_widget().place(relx=0.02, rely=0.02, relwidth=0.45, relheight=0.86)
     
-    # Criar e exibir o gráfico de pizza dos meios de pagamento mais utilizados
+    # Criação e exibição do gráfico de pizza para meios de pagamento
     fig2 = plt.figure(figsize=(4, 4), facecolor='#BEBEBE')
     ax2 = fig2.add_subplot(111)
-    meios, frequencias = zip(*meios_pagamento_utilizados)
-    ax2.pie(frequencias, labels=meios, autopct='%1.1f%%', startangle=140)
+    
+    if meios_pagamento_utilizados:
+        # Dados para o gráfico de pizza
+        meios, frequencias = zip(*meios_pagamento_utilizados)
+        ax2.pie(frequencias, labels=meios, autopct='%1.1f%%', startangle=140)
+    else:
+        # Exibir mensagem se não houver dados
+        ax2.pie([1], labels=["Sem dados"], startangle=140)
+
     ax2.set_title('Meios de pagamento mais utilizados')
     ax2.set_facecolor('#BEBEBE')  # Define a cor de fundo do gráfico
     
+    # Adicionar o gráfico ao frame
     canvas2 = FigureCanvasTkAgg(fig2, master=frame_graficos)
     canvas2.draw()
     canvas2.get_tk_widget().place(relx=0.52, rely=0.02, relwidth=0.45, relheight=0.86)
