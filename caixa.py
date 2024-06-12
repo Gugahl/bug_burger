@@ -103,6 +103,22 @@ def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
         # Se o produto não existir ou a quantidade for inválida, exibe "-"
         label_preco.config(text="Preço: -")
 
+# Função para atualizar o valor mensal com base no número de parcelas
+def atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, estoque, label_valor_mensal):
+    produto_nome = entry_produto.get().upper()
+    qtd = entry_qtd.get()
+    parcelas = entry_parcelas.get()
+
+    produto_estoque = next((item for item in estoque if item["nome"] == produto_nome), None)
+    
+    if produto_estoque and qtd.isnumeric() and int(qtd) > 0 and parcelas.isnumeric() and 1 <= int(parcelas) <= 12:
+        preco_total = produto_estoque["preco"] * int(qtd)
+        valor_mensal = preco_total / int(parcelas)
+        label_valor_mensal.config(text=f"Valor Mensal: R${valor_mensal:.2f}")
+    else:
+        label_valor_mensal.config(text="Valor Mensal: -")
+
+
 # Função para exibir os gráficos do caixa
 def exibir_graficos(frame, vendas):
     # Criação de um frame para exibir os gráficos
@@ -200,7 +216,7 @@ def historico_vendas(frame, vendas):
         Label(frame_historico, text=historico, bg='#E8E8E8').place(relx=0.05, rely=0.15, relwidth=0.9, relheight=0.7)
 
         # Botão para exibir os gráficos
-        Button(frame_historico, text="Exibir Gráficos", command=lambda: exibir_graficos(frame_historico, vendas), bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
+        Button(frame_historico, text="Exibir Gráficos", command=lambda: exibir_graficos(frame, vendas), bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
 
     # Botão para voltar ao menu anterior
     Button(frame_historico, text="Voltar ao menu anterior", command=frame_historico.destroy, bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
@@ -247,48 +263,76 @@ def acessar_caixa(application):
         # Criação do formulário para registrar uma venda
         def form_registrar_venda(self):
             frame_registrar = Frame(self.frame1, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
-            frame_registrar.place(relx=0.02, relwidth=0.96, relheight=0.96)
+            frame_registrar.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
 
             Label(frame_registrar, text="Nome do Produto", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.2, relheight=0.05)
             entry_produto = Entry(frame_registrar)
             entry_produto.place(relx=0.35, rely=0.05, relwidth=0.5, relheight=0.05)
             
+            Label(frame_registrar, text="Quantidade", bg='#E8E8E8').place(relx=0.15, rely=0.12, relwidth=0.2, relheight=0.05)
+            entry_qtd = Entry(frame_registrar)
+            entry_qtd.place(relx=0.35, rely=0.12, relwidth=0.5, relheight=0.05)
+            
             # Rótulo para exibir o preço do produto
             label_preco = Label(frame_registrar, text="Preço: -", bg='#E8E8E8')
-            label_preco.place(relx=0.35, rely=0.12, relwidth=0.5, relheight=0.05)
-            
-            Label(frame_registrar, text="Quantidade", bg='#E8E8E8').place(relx=0.15, rely=0.20, relwidth=0.2, relheight=0.05)
-            entry_qtd = Entry(frame_registrar)
-            entry_qtd.place(relx=0.35, rely=0.20, relwidth=0.5, relheight=0.05)
+            label_preco.place(relx=0.35, rely=0.19, relwidth=0.5, relheight=0.05)
             
             # Função para atualizar o preço quando o nome do produto ou a quantidade são alterados
             entry_produto.bind("<KeyRelease>", lambda event: atualizar_preco(entry_produto, entry_qtd, self.estoque, label_preco))
             entry_qtd.bind("<KeyRelease>", lambda event: atualizar_preco(entry_produto, entry_qtd, self.estoque, label_preco))
 
-            Label(frame_registrar, text="Meio de Pagamento", bg='#E8E8E8').place(relx=0.15, rely=0.30, relwidth=0.2, relheight=0.05)
-            entry_meio_pagamento = StringVar(frame_registrar)
-            entry_meio_pagamento.set("À vista")
-            pagamentos = ["À vista", "PIX", "Cartão de débito", "Cartão de crédito 1x", "Cartão de crédito 2x", "Cartão de crédito 3x",
-                          "Cartão de crédito 4x", "Cartão de crédito 5x", "Cartão de crédito 6x", "Cartão de crédito 7x", 
-                          "Cartão de crédito 8x", "Cartão de crédito 9x", "Cartão de crédito 10x", "Cartão de crédito 11x", "Cartão de crédito 12x"]
-            OptionMenu(frame_registrar, entry_meio_pagamento, *pagamentos).place(relx=0.35, rely=0.30, relwidth=0.5, relheight=0.05)
+            # Entrada para o meio de pagamento
+            Label(frame_registrar, text="Meio de Pagamento:", bg='#E8E8E8').place(relx=0.15, rely=0.26, relwidth=0.2, relheight=0.05)
+            meio_pagamento_var = StringVar(frame_registrar)
+            meio_pagamento_var.set("Escolha a forma de pagamento")
+            entry_meio_pagamento = OptionMenu(frame_registrar, meio_pagamento_var, "Dinheiro", "Cartão de Crédito", "Cartão de Débito", "Pix")
+            entry_meio_pagamento.place(relx=0.35, rely=0.26, relwidth=0.5, relheight=0.05)
 
-            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, self.nome_arquivo_vendas, entry_produto, entry_qtd, entry_meio_pagamento, label_preco), bg='#363636', fg='white')
-            bt_confirmar.place(relx=0.35, rely=0.40, relwidth=0.3, relheight=0.1)
+            # Frame para número de parcelas (inicialmente oculto)
+            frame_parcelas = Frame(frame_registrar, bg='#E8E8E8')
+            frame_parcelas.place(relx=0.35, rely=0.35, relwidth=0.5, relheight=0.1)
 
-            Button(frame_registrar, text="Limpar Campos", command=lambda: self.limpar_campos(entry_produto, entry_qtd, entry_meio_pagamento, label_preco), bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
+            # Criação da entrada de número de parcelas
+            Label(frame_parcelas, text="Número de Parcelas:", bg='#E8E8E8').place(relx=0.0, rely=0.0, relwidth=0.5, relheight=0.5)
+            entry_parcelas = Entry(frame_parcelas)
+            entry_parcelas.place(relx=0.5, rely=0.0, relwidth=0.5, relheight=0.5)
 
-            Button(frame_registrar, text="Voltar ao menu anterior", command=frame_registrar.destroy, bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+            # Rótulo para o valor mensal (inicialmente oculto)
+            label_valor_mensal = Label(frame_registrar, text="Valor Mensal: R$", bg='#E8E8E8')
+
+            def atualizar_parcelas(*args):
+                if meio_pagamento_var.get() == "Cartão de Crédito":
+                    frame_parcelas.place(relx=0.35, rely=0.35, relwidth=0.5, relheight=0.1)
+                    label_valor_mensal.place(relx=0.35, rely=0.45, relwidth=0.5, relheight=0.05)
+                    # Atualiza o valor mensal quando o número de parcelas é alterado
+                    entry_parcelas.bind("<KeyRelease>", lambda event: atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, self.estoque, label_valor_mensal))
+                else:
+                    frame_parcelas.place_forget()
+                    label_valor_mensal.place_forget()
+
+            # Associa a função de atualização ao trace do meio de pagamento
+            meio_pagamento_var.trace_add("write", atualizar_parcelas)
+            
+            # Botão para voltar ao menu do caixa
+            Button(frame_registrar, text="Voltar ao menu anterior", command=frame_registrar.destroy, bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
+            
+            Button(frame_registrar, text="Limpar Campos", command=lambda: self.limpar_campos(entry_produto, entry_qtd, entry_meio_pagamento, label_preco), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+            
+            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self, self.vendas, self.estoque, "historico.csv", entry_produto, entry_qtd, meio_pagamento_var, label_preco, self.carrinho), bg='#363636', fg='white')
+            bt_confirmar.place(relx=0.68, rely=0.88, relwidth=0.3, relheight=0.1)
 
         def voltar_menu_principal(self):
             self.frame1.place_forget()  # Oculta o frame atual
             application.frame_atual.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)  # Mostra o frame anterior
         
-        def limpar_campos(self, entry_produto, entry_qtd, entry_meio_pagamento, label_preco):
+        def limpar_campos(self, entry_produto, entry_qtd, meio_pagamento_var, label_preco, label_valor_mensal=None, entry_parcelas=None):
             entry_produto.delete(0, END)
             entry_qtd.delete(0, END)
-            entry_meio_pagamento.set("à vista")
+            meio_pagamento_var.set("Escolha a forma de pagamento")
             label_preco.config(text="Preço: -")
+            # Limpa o campo de parcelas e valor mensal, se necessário
+            entry_parcelas.delete(0, END)
+            label_valor_mensal.config(text="Valor Mensal: R$")
     
     CaixaApp(application.root)
 
