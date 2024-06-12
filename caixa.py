@@ -116,7 +116,7 @@ def atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, estoque, la
         valor_mensal = preco_total / int(parcelas)
         label_valor_mensal.config(text=f"Valor Mensal: R${valor_mensal:.2f}")
     else:
-        label_valor_mensal.config(text="Valor Mensal: -")
+        label_valor_mensal.config(text="Valor Mensal: R$")
 
 
 # Função para exibir os gráficos do caixa
@@ -197,6 +197,8 @@ def exibir_graficos(frame, vendas):
     # Botão para voltar ao menu anterior
     Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
 
+from tkinter import Frame, Label, Button
+
 # Função para exibir o histórico de vendas
 def historico_vendas(frame, vendas):
     frame_historico = Frame(frame, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
@@ -205,15 +207,25 @@ def historico_vendas(frame, vendas):
     if len(vendas) == 0:
         Label(frame_historico, text="NENHUMA VENDA REGISTRADA...", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
     else:
-        historico = "DATA\t\t\tPRODUTO\t\t\tQTD\tPREÇO UNITÁRIO\tMEIO PAGAMENTO\n"  # Ajuste de espaçamento
+        # Cabeçalhos da tabela
+        Label(frame_historico, text="DATA", bg='#E8E8E8').place(relx=0.05, rely=0.05, relwidth=0.15, relheight=0.05)
+        Label(frame_historico, text="PRODUTO", bg='#E8E8E8').place(relx=0.20, rely=0.05, relwidth=0.25, relheight=0.05)
+        Label(frame_historico, text="QTD", bg='#E8E8E8').place(relx=0.45, rely=0.05, relwidth=0.10, relheight=0.05)
+        Label(frame_historico, text="PREÇO UNITÁRIO", bg='#E8E8E8').place(relx=0.55, rely=0.05, relwidth=0.20, relheight=0.05)
+        Label(frame_historico, text="MEIO PAGAMENTO", bg='#E8E8E8').place(relx=0.75, rely=0.05, relwidth=0.20, relheight=0.05)
+
         total = 0
-        for venda in vendas:
-            # Constrói a string de histórico com os dados de cada venda
-            historico += f"{venda['data']}\t{venda['produto']}\t\t\t{venda['qtd']}\t{venda['preco']:.2f}\t\t{venda['meio_pagamento']}\n"  # Ajuste de espaçamento
+        for i, venda in enumerate(vendas):
+            # Exibe cada valor na sua posição correspondente
+            Label(frame_historico, text=venda['data'], bg='#E8E8E8').place(relx=0.05, rely=0.1 + i*0.05, relwidth=0.15, relheight=0.05)
+            Label(frame_historico, text=venda['produto'], bg='#E8E8E8').place(relx=0.20, rely=0.1 + i*0.05, relwidth=0.25, relheight=0.05)
+            Label(frame_historico, text=venda['qtd'], bg='#E8E8E8').place(relx=0.45, rely=0.1 + i*0.05, relwidth=0.10, relheight=0.05)
+            Label(frame_historico, text=f"{venda['preco']:.2f}", bg='#E8E8E8').place(relx=0.55, rely=0.1 + i*0.05, relwidth=0.20, relheight=0.05)
+            Label(frame_historico, text=venda['meio_pagamento'], bg='#E8E8E8').place(relx=0.75, rely=0.1 + i*0.05, relwidth=0.20, relheight=0.05)
             total += venda['qtd'] * venda['preco']
-        historico += f"\nTOTAL VENDIDO: R${total:.2f}\n"
-        # Exibe o histórico no frame
-        Label(frame_historico, text=historico, bg='#E8E8E8').place(relx=0.05, rely=0.15, relwidth=0.9, relheight=0.7)
+        
+        # Exibe o total vendido
+        Label(frame_historico, text=f"TOTAL VENDIDO: R${total:.2f}", bg='#E8E8E8').place(relx=0.05, rely=0.1 + len(vendas)*0.05, relwidth=0.9, relheight=0.05)
 
         # Botão para exibir os gráficos
         Button(frame_historico, text="Exibir Gráficos", command=lambda: exibir_graficos(frame, vendas), bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
@@ -318,7 +330,7 @@ def acessar_caixa(application):
             
             Button(frame_registrar, text="Limpar Campos", command=lambda: self.limpar_campos(entry_produto, entry_qtd, entry_meio_pagamento, label_preco), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
             
-            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self, self.vendas, self.estoque, "historico.csv", entry_produto, entry_qtd, meio_pagamento_var, label_preco, self.carrinho), bg='#363636', fg='white')
+            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, "historico.csv", entry_produto, entry_qtd, meio_pagamento_var, label_preco), bg='#363636', fg='white')
             bt_confirmar.place(relx=0.68, rely=0.88, relwidth=0.3, relheight=0.1)
 
         def voltar_menu_principal(self):
@@ -367,6 +379,3 @@ if __name__ == "__main__":
     root = Tk()
     app = MainApp(root)
     root.mainloop()
-
-
-

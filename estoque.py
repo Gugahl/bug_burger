@@ -219,7 +219,7 @@ def acessar_estoque(application):
 
         def gerar_pdf(self):
             # Aqui você pode adicionar a lógica para gerar um PDF com os dados do estoque
-            messagebox.showinfo("Gerar PDF", "Lógica para gerar PDF ainda não implementada!")
+            messagebox.showinfo("Gerar PDF", "Lógica para gerar PDF ainda não implementada! (Somente na próxima atualização)")
 
     EstoqueApp(application.root)
 
@@ -257,5 +257,3 @@ if __name__ == "__main__":
     root = Tk()
     app = MainApp(root)
     root.mainloop()
-
-
