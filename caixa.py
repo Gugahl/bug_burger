@@ -106,15 +106,15 @@ def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
 # Função para exibir os gráficos do caixa
 def exibir_graficos(frame, vendas):
     # Criação de um frame para exibir os gráficos
-    frame_graficos = Frame(frame, bd=8, bg='#BEBEBE', highlightbackground='black', highlightthickness=3)
+    frame_graficos = Frame(frame, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
     frame_graficos.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
 
     # Verificação se o arquivo de histórico existe e se há dados de vendas
     if not os.path.exists('historico.csv') or not vendas:
         # Exibir mensagem de erro se não houver dados
-        Label(frame_graficos, text="NENHUM DADO COMPUTADO...", bg='#BEBEBE').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
+        Label(frame_graficos, text="NENHUM DADO COMPUTADO...", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
         # Botão para voltar ao menu anterior
-        Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#C0C0C0').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+        Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
         return
     
     # Inicialização dos contadores para produtos vendidos e meios de pagamento
@@ -125,7 +125,7 @@ def exibir_graficos(frame, vendas):
     for venda in vendas:
         produto = venda.get("produto")
         meio_pagamento = venda.get("meio_pagamento")
-        quantidade = venda.get("quantidade", 1)
+        quantidade = venda.get("qtd", 1)
         
         # Verificação e adição da quantidade vendida ao contador de produtos
         if produto and isinstance(quantidade, int) and quantidade > 0:
@@ -139,7 +139,7 @@ def exibir_graficos(frame, vendas):
     meios_pagamento_utilizados = meios_pagamento.most_common()
     
     # Criação e exibição do gráfico de pizza para produtos mais vendidos
-    fig1 = plt.figure(figsize=(4, 4), facecolor='#BEBEBE')
+    fig1 = plt.figure(figsize=(4, 4), facecolor='#E8E8E8')
     ax1 = fig1.add_subplot(111)
     
     if produtos_mais_vendidos:
@@ -151,7 +151,7 @@ def exibir_graficos(frame, vendas):
         ax1.pie([1], labels=["Sem dados"], startangle=140)
 
     ax1.set_title('Produtos mais vendidos por quantidade')
-    ax1.set_facecolor('#BEBEBE')  # Define a cor de fundo do gráfico
+    ax1.set_facecolor('#E8E8E8')  # Define a cor de fundo do gráfico
     
     # Adicionar o gráfico ao frame
     canvas1 = FigureCanvasTkAgg(fig1, master=frame_graficos)
@@ -159,7 +159,7 @@ def exibir_graficos(frame, vendas):
     canvas1.get_tk_widget().place(relx=0.02, rely=0.02, relwidth=0.45, relheight=0.86)
     
     # Criação e exibição do gráfico de pizza para meios de pagamento
-    fig2 = plt.figure(figsize=(4, 4), facecolor='#BEBEBE')
+    fig2 = plt.figure(figsize=(4, 4), facecolor='#E8E8E8')
     ax2 = fig2.add_subplot(111)
     
     if meios_pagamento_utilizados:
@@ -171,7 +171,7 @@ def exibir_graficos(frame, vendas):
         ax2.pie([1], labels=["Sem dados"], startangle=140)
 
     ax2.set_title('Meios de pagamento mais utilizados')
-    ax2.set_facecolor('#BEBEBE')  # Define a cor de fundo do gráfico
+    ax2.set_facecolor('#E8E8E8')  # Define a cor de fundo do gráfico
     
     # Adicionar o gráfico ao frame
     canvas2 = FigureCanvasTkAgg(fig2, master=frame_graficos)
@@ -179,15 +179,15 @@ def exibir_graficos(frame, vendas):
     canvas2.get_tk_widget().place(relx=0.52, rely=0.02, relwidth=0.45, relheight=0.86)
 
     # Botão para voltar ao menu anterior
-    Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#C0C0C0').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+    Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
 
 # Função para exibir o histórico de vendas
 def historico_vendas(frame, vendas):
-    frame_historico = Frame(frame, bd=8, bg='#BEBEBE', highlightbackground='black', highlightthickness=3)
+    frame_historico = Frame(frame, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
     frame_historico.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
 
     if len(vendas) == 0:
-        Label(frame_historico, text="NENHUMA VENDA REGISTRADA...", bg='#BEBEBE').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
+        Label(frame_historico, text="NENHUMA VENDA REGISTRADA...", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
     else:
         historico = "DATA\t\t\tPRODUTO\t\t\tQTD\tPREÇO UNITÁRIO\tMEIO PAGAMENTO\n"  # Ajuste de espaçamento
         total = 0
@@ -197,77 +197,67 @@ def historico_vendas(frame, vendas):
             total += venda['qtd'] * venda['preco']
         historico += f"\nTOTAL VENDIDO: R${total:.2f}\n"
         # Exibe o histórico no frame
-        Label(frame_historico, text=historico, bg='#BEBEBE').place(relx=0.05, rely=0.15, relwidth=0.9, relheight=0.7)
+        Label(frame_historico, text=historico, bg='#E8E8E8').place(relx=0.05, rely=0.15, relwidth=0.9, relheight=0.7)
 
         # Botão para exibir os gráficos
-        Button(frame_historico, text="Exibir Gráficos", command=lambda: exibir_graficos(frame_historico, vendas), bg='#C0C0C0').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
+        Button(frame_historico, text="Exibir Gráficos", command=lambda: exibir_graficos(frame_historico, vendas), bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
 
     # Botão para voltar ao menu anterior
-    Button(frame_historico, text="Voltar ao menu anterior", command=frame_historico.destroy, bg='#C0C0C0').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+    Button(frame_historico, text="Voltar ao menu anterior", command=frame_historico.destroy, bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
 
 # Função para acessar o caixa
-def acessar_caixa(root=None):
+def acessar_caixa(application):
     nome_arquivo_vendas = 'historico.csv'
     # Lê o histórico de vendas e o estoque do arquivo
     vendas = ler_vendas(nome_arquivo_vendas)
     estoque = ler_estoque("estoque.csv")
-    root = Tk()
 
     # Classe principal da aplicação
-    class Application:
+    class CaixaApp:
         def __init__(self, root):
             self.root = root
             self.vendas = vendas
             self.estoque = estoque
             self.nome_arquivo_vendas = nome_arquivo_vendas
-            self.tela()
             self.frames()
             self.objetos_frame1()
 
-        # Configurações da janela
-        def tela(self):
-            self.altura = altura
-            self.largura = largura
-            self.root.title("Caixa")
-            self.root.configure(background='#363636')
-            self.root.geometry(f"{self.largura}x{self.altura}")
-            self.root.resizable(True, True)
-
         # Criação dos frames
         def frames(self):
-            self.frame1 = Frame(self.root, bd=8, bg='#BEBEBE', highlightbackground='black', highlightthickness=3)
+            self.frame1 = Frame(self.root, bd=8, bg='#E8E8E8',
+                                highlightbackground='#363636', highlightthickness=3)
             self.frame1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
 
         # Adiciona os widgets ao frame principal
         def objetos_frame1(self):
-            Label(self.frame1, text="Caixa", font=('arialblack', 30), bg='#BEBEBE').place(relx=0.35, rely=0.05, relwidth=0.3, relheight=0.1)
+            Label(self.frame1, text="Caixa", font=('Arial Black', 30), bg='#E8E8E8').place(relx=0.35, rely=0.05, relwidth=0.3, relheight=0.1)
 
-            self.bt_caixa = Button(self.frame1, text="Registrar venda", command=self.form_registrar_venda, bg='#C0C0C0')
+            self.bt_caixa = Button(self.frame1, text="Registrar Venda", command=self.form_registrar_venda, bg='#363636', fg='white')
             self.bt_caixa.place(relx=0.35, rely=0.20, relwidth=0.3, relheight=0.1)
 
-            self.bt_historico = Button(self.frame1, text='Ver histórico de vendas', command=lambda: historico_vendas(self.frame1, self.vendas), bg='#C0C0C0')
+            self.bt_historico = Button(self.frame1, text='Ver Histórico de Vendas', command=lambda: historico_vendas(self.frame1, self.vendas), bg='#363636', fg='white')
             self.bt_historico.place(relx=0.35, rely=0.35, relwidth=0.3, relheight=0.1)
 
-            self.bt_grafico = Button(self.frame1, text='Ver gráficos', command=lambda: exibir_graficos(self.frame1, self.vendas), bg='#C0C0C0')
+            self.bt_grafico = Button(self.frame1, text='Ver Gráficos', command=lambda: exibir_graficos(self.frame1, self.vendas), bg='#363636', fg='white')
             self.bt_grafico.place(relx=0.35, rely=0.50, relwidth=0.3, relheight=0.1)
 
-            self.bt_sair = Button(self.frame1, text='Voltar ao menu principal', command=root.destroy, bg='#C0C0C0')
+            self.bt_sair = Button(self.frame1, text='Voltar ao Menu Principal', command=self.voltar_menu_principal, bg='#363636', fg='white')
             self.bt_sair.place(relx=0.35, rely=0.65, relwidth=0.3, relheight=0.1)
 
         # Criação do formulário para registrar uma venda
         def form_registrar_venda(self):
-            frame_registrar = Frame(self.frame1, bd=8, bg='#BEBEBE', highlightbackground='black', highlightthickness=3)
+            frame_registrar = Frame(self.frame1, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
             frame_registrar.place(relx=0.02, relwidth=0.96, relheight=0.96)
 
-            Label(frame_registrar, text="Nome do Produto", bg='#BEBEBE').place(relx=0.15, rely=0.05, relwidth=0.2, relheight=0.05)
+            Label(frame_registrar, text="Nome do Produto", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.2, relheight=0.05)
             entry_produto = Entry(frame_registrar)
             entry_produto.place(relx=0.35, rely=0.05, relwidth=0.5, relheight=0.05)
             
             # Rótulo para exibir o preço do produto
-            label_preco = Label(frame_registrar, text="Preço: -", bg='#BEBEBE')
+            label_preco = Label(frame_registrar, text="Preço: -", bg='#E8E8E8')
             label_preco.place(relx=0.35, rely=0.12, relwidth=0.5, relheight=0.05)
             
-            Label(frame_registrar, text="Quantidade", bg='#BEBEBE').place(relx=0.15, rely=0.20, relwidth=0.2, relheight=0.05)
+            Label(frame_registrar, text="Quantidade", bg='#E8E8E8').place(relx=0.15, rely=0.20, relwidth=0.2, relheight=0.05)
             entry_qtd = Entry(frame_registrar)
             entry_qtd.place(relx=0.35, rely=0.20, relwidth=0.5, relheight=0.05)
             
@@ -275,23 +265,64 @@ def acessar_caixa(root=None):
             entry_produto.bind("<KeyRelease>", lambda event: atualizar_preco(entry_produto, entry_qtd, self.estoque, label_preco))
             entry_qtd.bind("<KeyRelease>", lambda event: atualizar_preco(entry_produto, entry_qtd, self.estoque, label_preco))
 
-            Label(frame_registrar, text="Meio de Pagamento", bg='#BEBEBE').place(relx=0.15, rely=0.30, relwidth=0.2, relheight=0.05)
+            Label(frame_registrar, text="Meio de Pagamento", bg='#E8E8E8').place(relx=0.15, rely=0.30, relwidth=0.2, relheight=0.05)
             entry_meio_pagamento = StringVar(frame_registrar)
-            entry_meio_pagamento.set("à vista")
-            pagamentos = ["à vista", "PIX", "cartão de débito", "cartão de crédito 1x", "cartão de crédito 2x", "cartão de crédito 3x",
-                          "cartão de crédito 4x", "cartão de crédito 5x", "cartão de crédito 6x", "cartão de crédito 7x", 
-                          "cartão de crédito 8x", "cartão de crédito 9x", "cartão de crédito 10x", "cartão de crédito 11x", "cartão de crédito 12x"]
+            entry_meio_pagamento.set("À vista")
+            pagamentos = ["À vista", "PIX", "Cartão de débito", "Cartão de crédito 1x", "Cartão de crédito 2x", "Cartão de crédito 3x",
+                          "Cartão de crédito 4x", "Cartão de crédito 5x", "Cartão de crédito 6x", "Cartão de crédito 7x", 
+                          "Cartão de crédito 8x", "Cartão de crédito 9x", "Cartão de crédito 10x", "Cartão de crédito 11x", "Cartão de crédito 12x"]
             OptionMenu(frame_registrar, entry_meio_pagamento, *pagamentos).place(relx=0.35, rely=0.30, relwidth=0.5, relheight=0.05)
 
-            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, self.nome_arquivo_vendas, entry_produto, entry_qtd, entry_meio_pagamento, label_preco), bg='#C0C0C0')
+            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, self.nome_arquivo_vendas, entry_produto, entry_qtd, entry_meio_pagamento, label_preco), bg='#363636', fg='white')
             bt_confirmar.place(relx=0.35, rely=0.40, relwidth=0.3, relheight=0.1)
 
-            bt_voltar = Button(frame_registrar, text="Voltar ao menu anterior", command=frame_registrar.destroy, bg='#C0C0C0')
-            bt_voltar.place(relx=0.35, rely=0.55, relwidth=0.3, relheight=0.1)
+            Button(frame_registrar, text="Limpar Campos", command=lambda: self.limpar_campos(entry_produto, entry_qtd, entry_meio_pagamento, label_preco), bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
 
-    Application(root)
+            Button(frame_registrar, text="Voltar ao menu anterior", command=frame_registrar.destroy, bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+
+        def voltar_menu_principal(self):
+            self.frame1.place_forget()  # Oculta o frame atual
+            application.frame_atual.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)  # Mostra o frame anterior
+        
+        def limpar_campos(self, entry_produto, entry_qtd, entry_meio_pagamento, label_preco):
+            entry_produto.delete(0, END)
+            entry_qtd.delete(0, END)
+            entry_meio_pagamento.set("à vista")
+            label_preco.config(text="Preço: -")
+    
+    CaixaApp(application.root)
+
+class MainApp:
+    def __init__(self, root):
+        self.root = root
+        self.tela()
+        self.frames()
+        self.objetos_frame1()
+
+    def tela(self):
+        self.altura = altura
+        self.largura = largura
+        self.root.title("Gerenciamento de Caixa")
+        self.root.configure(background='#363636')
+        self.root.geometry(f"{self.largura}x{self.altura}")
+        self.root.resizable(True, True)
+
+    def frames(self):
+        self.frame1 = Frame(self.root, bd=8, bg='#E8E8E8',
+                            highlightbackground='#363636', highlightthickness=3)
+        self.frame1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+
+    def objetos_frame1(self):
+        self.bt_acessar_caixa = Button(self.frame1, text="Acessar Caixa", command=lambda: acessar_caixa(self), bg='#363636', fg='white')
+        self.bt_acessar_caixa.place(relx=0.35, rely=0.40, relwidth=0.3, relheight=0.1)
+        self.bt_sair = Button(self.frame1, text='Sair', command=self.root.destroy, bg='#363636', fg='white')
+        self.bt_sair.place(relx=0.35, rely=0.55, relwidth=0.3, relheight=0.1)
+
+# Exemplo de chamada à função principal
+if __name__ == "__main__":
+    root = Tk()
+    app = MainApp(root)
     root.mainloop()
 
-# Chamada à função principal
-if __name__ == "__main__":
-    acessar_caixa(None)
+
+
