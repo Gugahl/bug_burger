@@ -54,6 +54,7 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
             if i["nome"] == produto["nome"]:
                 existe = True
                 i["qtd"] += produto["qtd"]
+                i["preco"] = produto["preco"]
                 break
         if not existe:
             estoque.append(produto)
