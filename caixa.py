@@ -34,7 +34,7 @@ def escrever_vendas(nome_arquivo, vendas):
             writer.writerow([venda['data'], venda['produto'], venda['qtd'], preco_formatado, venda['meio_pagamento']])
 
 # Função para registrar uma venda
-def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_qtd, entry_meio_pagamento, label_preco):
+def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_qtd, entry_meio_pagamento, entry_parcelas, label_preco):
     # Cria um dicionário para armazenar os dados da venda
     venda = {"data": None, "produto": None, "qtd": None, "preco": None, "meio_pagamento": None}
     # Obtém a data e hora atual
@@ -76,6 +76,11 @@ def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_q
             return
     else:
         venda["meio_pagamento"] = meio_pagamento
+    
+    parcelas = entry_parcelas.get()
+    if not parcelas.isnumeric() or int(parcelas) < 1 or int(parcelas) > 12:
+        messagebox.showerror("Erro", "PARCELAMENTO DEVE SER DE 1 A 12 VEZES!")
+        return
 
     # Adiciona a venda ao histórico
     vendas.append(venda)
@@ -116,7 +121,7 @@ def atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, estoque, la
     # Verifica se é cartão de crédito e se tem mais de 12 parcelas
     if meio_pagamento == "Cartão de Crédito":
         parcelas = entry_parcelas.get()
-        if not parcelas.isnumeric() or int(parcelas) > 12:
+        if not parcelas.isnumeric() or int(parcelas) < 1 or int(parcelas) > 12:
             messagebox.showerror("Erro", "PARCELAMENTO DEVE SER DE 1 A 12 VEZES!")
             return
 
@@ -349,7 +354,7 @@ def acessar_caixa(application):
             
             Button(frame_registrar, text="Limpar Campos", command=lambda: self.limpar_campos(entry_produto, entry_qtd, entry_meio_pagamento, label_preco), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
             
-            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, "historico.csv", entry_produto, entry_qtd, meio_pagamento_var, label_preco), bg='#363636', fg='white')
+            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, "historico.csv", entry_produto, entry_qtd, meio_pagamento_var, entry_parcelas, label_preco), bg='#363636', fg='white')
             bt_confirmar.place(relx=0.68, rely=0.88, relwidth=0.3, relheight=0.1)
 
         def voltar_menu_principal(self):
