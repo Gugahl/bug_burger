@@ -77,8 +77,6 @@ def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_q
     else:
         venda["meio_pagamento"] = meio_pagamento
 
-
-
     # Adiciona a venda ao histórico
     vendas.append(venda)
     # Limita o histórico a 12 vendas

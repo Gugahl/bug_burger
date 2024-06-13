@@ -25,7 +25,7 @@ class Application:
         self.frame_atual = Frame(self.root, bd=8, bg='#D5D5D5', highlightbackground='black', highlightthickness=2)
         self.frame_atual.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
 
-        Label(self.frame_atual, text="Burgerburger", font=('Helvetica', 36, 'bold'), bg='#D5D5D5').place(relx=0.35, rely=0.05, relwidth=0.3, relheight=0.1)
+        Label(self.frame_atual, text="BugBurger", font=('Helvetica', 36, 'bold'), bg='#D5D5D5').place(relx=0.35, rely=0.05, relwidth=0.3, relheight=0.1)
         
         # Estilizando os botões
         style = ttk.Style()
