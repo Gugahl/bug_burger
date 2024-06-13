@@ -71,7 +71,13 @@ def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_q
 
     # Adiciona a escolha do meio de pagamento
     meio_pagamento = entry_meio_pagamento.get()
-    venda["meio_pagamento"] = meio_pagamento
+    if meio_pagamento == "Escolha a forma de pagamento":
+            messagebox.showerror("Erro", "POR FAVOR ESCOLHA UM MEIO DE PAGAMENTO!")
+            return
+    else:
+        venda["meio_pagamento"] = meio_pagamento
+
+
 
     # Adiciona a venda ao histórico
     vendas.append(venda)
@@ -104,17 +110,27 @@ def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
         label_preco.config(text="Preço: -")
 
 # Função para atualizar o valor mensal com base no número de parcelas
-def atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, estoque, label_valor_mensal):
+def atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, estoque, label_valor_mensal, meio_pagamento):
     produto_nome = entry_produto.get().upper()
     qtd = entry_qtd.get()
     parcelas = entry_parcelas.get()
+    
+    # Verifica se é cartão de crédito e se tem mais de 12 parcelas
+    if meio_pagamento == "Cartão de Crédito":
+        parcelas = entry_parcelas.get()
+        if not parcelas.isnumeric() or int(parcelas) > 12:
+            messagebox.showerror("Erro", "PARCELAMENTO DEVE SER DE 1 A 12 VEZES!")
+            return
 
     produto_estoque = next((item for item in estoque if item["nome"] == produto_nome), None)
-    
+
     if produto_estoque and qtd.isnumeric() and int(qtd) > 0 and parcelas.isnumeric() and 1 <= int(parcelas) <= 12:
         preco_total = produto_estoque["preco"] * int(qtd)
         valor_mensal = preco_total / int(parcelas)
         label_valor_mensal.config(text=f"Valor Mensal: R${valor_mensal:.2f}")
+    elif produto_estoque and qtd.isnumeric() and int(qtd) > 0 and parcelas.isnumeric() and int(parcelas) > 12:
+        messagebox.showerror("Erro", "Número máximo de parcelas permitido é 12 para cartão de crédito.")
+        label_valor_mensal.config(text="Valor Mensal: R$")
     else:
         label_valor_mensal.config(text="Valor Mensal: R$")
 
@@ -146,6 +162,11 @@ def exibir_graficos(frame, vendas):
         # Verificação e adição da quantidade vendida ao contador de produtos
         if produto and isinstance(quantidade, int) and quantidade > 0:
             produtos_vendidos[produto] += quantidade
+        
+        # Modificação para agrupar crédito parcelado como crédito
+        if meio_pagamento == 'Crédito Parcelado':
+            meio_pagamento = 'Cartão de Crédito'
+        
         # Adição do meio de pagamento ao contador
         if meio_pagamento:
             meios_pagamento[meio_pagamento] += 1
@@ -317,7 +338,7 @@ def acessar_caixa(application):
                     frame_parcelas.place(relx=0.35, rely=0.35, relwidth=0.5, relheight=0.1)
                     label_valor_mensal.place(relx=0.35, rely=0.45, relwidth=0.5, relheight=0.05)
                     # Atualiza o valor mensal quando o número de parcelas é alterado
-                    entry_parcelas.bind("<KeyRelease>", lambda event: atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, self.estoque, label_valor_mensal))
+                    entry_parcelas.bind("<KeyRelease>", lambda event: atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, self.estoque, label_valor_mensal, meio_pagamento_var))
                 else:
                     frame_parcelas.place_forget()
                     label_valor_mensal.place_forget()

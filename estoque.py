@@ -115,6 +115,27 @@ def escrever_estoque(nome_arquivo, estoque):
         for item in estoque:
             escritor_csv.writerow(item)
 
+def organizar_estoque(frame, estoque):
+    frame_estoque = Frame(frame, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
+    frame_estoque.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+
+    if len(estoque) == 0:
+        Label(frame_estoque, text="ESTOQUE VAZIO...", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
+    else:
+        # Cabeçalhos da tabela
+        Label(frame_estoque, text="PRODUTO", bg='#E8E8E8').place(relx=0.05, rely=0.05, relwidth=0.45, relheight=0.05)
+        Label(frame_estoque, text="ESTOQUE", bg='#E8E8E8').place(relx=0.50, rely=0.05, relwidth=0.20, relheight=0.05)
+        Label(frame_estoque, text="PREÇO", bg='#E8E8E8').place(relx=0.70, rely=0.05, relwidth=0.25, relheight=0.05)
+
+        for i, produto in enumerate(estoque):
+            # Exibe cada valor na sua posição correspondente
+            Label(frame_estoque, text=produto['nome'], bg='#E8E8E8').place(relx=0.05, rely=0.1 + i*0.05, relwidth=0.45, relheight=0.05)
+            Label(frame_estoque, text=produto['qtd'], bg='#E8E8E8').place(relx=0.50, rely=0.1 + i*0.05, relwidth=0.20, relheight=0.05)
+            Label(frame_estoque, text=f"R${produto['preco']:.2f}", bg='#E8E8E8').place(relx=0.70, rely=0.1 + i*0.05, relwidth=0.25, relheight=0.05)
+
+    # Botão para voltar ao menu anterior
+    Button(frame_estoque, text="Voltar ao menu anterior", command=frame_estoque.destroy, bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+
 # Função para acessar e gerenciar o estoque
 def acessar_estoque(application):
     nome_arquivo = "estoque.csv"
@@ -193,18 +214,7 @@ def acessar_estoque(application):
             Button(self.frame_remover, text="Voltar ao menu anterior", command=self.frame_remover.destroy, bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
 
         def ver_estoque(self):
-            self.frame_verestoque = Frame(self.frame1, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
-            self.frame_verestoque.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
-            
-            if len(self.estoque) == 0:
-                Label(self.frame_verestoque, text="ESTOQUE VAZIO...", bg='#E8E8E8', fg='#363636').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
-            else:
-                estoque_str = "PRODUTO\t\tESTOQUE\t\tPREÇO\n"
-                for item in self.estoque:
-                    estoque_str += f"{item['nome']}\t\t{item['qtd']}\t\tR${item['preco']}\n"
-                Label(self.frame_verestoque, text=estoque_str, font=('Arial', 12), bg='#E8E8E8', fg='#363636').pack(pady=20)
-            
-            Button(self.frame_verestoque, text="Voltar ao menu anterior", command=self.frame_verestoque.destroy, bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
+            organizar_estoque(self.frame1, self.estoque)
 
         def voltar_menu_principal(self):
             self.frame1.place_forget()  # Oculta o frame atual
