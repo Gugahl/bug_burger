@@ -18,16 +18,23 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
     if not nome:
         messagebox.showerror("ERRO!", "O NOME DO PRODUTO NÃO PODE SER VAZIO!")
         return
+    for c in nome:
+        tem_letra = False
+        if c.isalnum():
+            tem_letra = True
+            break
+    if not tem_letra:
+        messagebox.showerror("ERRO!", "O NOME DO PRODUTO NÃO PODE CONTER SOMENTE ESPAÇOS OU CARACTERES ESPECIAIS!")
+        return
+    if not nome.replace(" ", "").isalnum():
+        messagebox.showerror("ERRO!", "O NOME DO PRODUTO NÃO PODE CONTER CARACTERES ESPECIAIS!")
+        return
     if nome.isnumeric():
         messagebox.showerror("ERRO!", "O NOME DO PRODUTO NÃO PODE SER COMPOSTO APENAS DE NÚMEROS!")
         return
     if nome[0].isdigit():
         messagebox.showerror("ERRO!", "O NOME DO PRODUTO NÃO PODE COMEÇAR COM UM NÚMERO!")
         return
-    for c in nome:
-        if not c.isalnum() and not c.isspace():
-            messagebox.showerror("ERRO!", "O NOME DO PRODUTO NÃO PODE CONTER CARACTERES ESPECIAIS!")
-            return
 
     # Verificar se a quantidade é válida
     if not qtd.isnumeric() or int(qtd) <= 0:
