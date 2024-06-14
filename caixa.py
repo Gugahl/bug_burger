@@ -32,69 +32,7 @@ def escrever_vendas(nome_arquivo, vendas):
         for venda in vendas:
             preco_formatado = round(venda['preco'], 2)  # Limita o preço a dois pontos flutuantes após a vírgula
             writer.writerow([venda['data'], venda['produto'], venda['qtd'], preco_formatado, venda['meio_pagamento']])
-
-# Função para registrar uma venda
-def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_qtd, entry_meio_pagamento, entry_parcelas, label_preco):
-    # Cria um dicionário para armazenar os dados da venda
-    venda = {"data": None, "produto": None, "qtd": None, "preco": None, "meio_pagamento": None}
-    # Obtém a data e hora atual
-    venda["data"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    # Obtém o nome do produto inserido pelo usuário
-    venda["produto"] = entry_produto.get().upper()
-
-    # Verifica se o produto está no estoque
-    produto_estoque = next((item for item in estoque if item["nome"] == venda["produto"]), None)
-    if not produto_estoque:
-        messagebox.showerror("Erro", "PRODUTO NÃO ENCONTRADO NO ESTOQUE!")
-        return
-
-    # Verifica se a quantidade inserida é um valor numérico inteiro e positivo
-    qtd = entry_qtd.get()
-    if not qtd.isnumeric() or int(qtd) <= 0:
-        messagebox.showerror("Erro", "POR FAVOR INSIRA SOMENTE NÚMEROS, QUE SEJAM INTEIROS E POSITIVOS!!!!")
-        return
-    venda["qtd"] = int(qtd)
-
-    # Verifica se há quantidade suficiente no estoque
-    if venda["qtd"] > produto_estoque["qtd"]:
-        messagebox.showerror("Erro", "QUANTIDADE INSUFICIENTE NO ESTOQUE!")
-        return
-
-    # Atualiza a quantidade no estoque
-    produto_estoque["qtd"] -= venda["qtd"]
-    if produto_estoque["qtd"] == 0:
-        estoque.remove(produto_estoque)
-    escrever_estoque("estoque.csv", estoque)
-
-    # Calcula o preço da venda
-    venda["preco"] = produto_estoque["preco"]
-
-    # Adiciona a escolha do meio de pagamento
-    meio_pagamento = entry_meio_pagamento.get()
-    if meio_pagamento == "Escolha a forma de pagamento":
-            messagebox.showerror("Erro", "POR FAVOR ESCOLHA UM MEIO DE PAGAMENTO!")
-            return
-    else:
-        venda["meio_pagamento"] = meio_pagamento
-    
-    parcelas = entry_parcelas.get()
-    if not parcelas.isnumeric() or int(parcelas) < 1 or int(parcelas) > 12:
-        messagebox.showerror("Erro", "PARCELAMENTO DEVE SER DE 1 A 12 VEZES!")
-        return
-
-    # Adiciona a venda ao histórico
-    vendas.append(venda)
-    # Limita o histórico a 12 vendas
-    if len(vendas) > 12:
-        vendas = [venda]
-    escrever_vendas(nome_arquivo_vendas, vendas)
-
-    # Exibe uma mensagem de sucesso e limpa os campos de entrada
-    messagebox.showinfo("Sucesso", "VENDA REGISTRADA COM SUCESSO!")
-    entry_produto.delete(0, END)
-    entry_qtd.delete(0, END)
-    label_preco.config(text="")
-
+            
 # Função para atualizar o preço com base no produto e na quantidade inseridos
 def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
     # Obtém o nome do produto e a quantidade inserida
@@ -137,6 +75,70 @@ def atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, estoque, la
     else:
         label_valor_mensal.config(text="Valor Mensal: R$")
 
+# Função para registrar uma venda
+def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_qtd, entry_meio_pagamento, entry_parcelas, label_preco, label_valor_mensal):
+    # Cria um dicionário para armazenar os dados da venda
+    venda = {"data": None, "produto": None, "qtd": None, "preco": None, "meio_pagamento": None}
+    # Obtém a data e hora atual
+    venda["data"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # Obtém o nome do produto inserido pelo usuário
+    venda["produto"] = entry_produto.get().upper()
+
+    # Verifica se o produto está no estoque
+    produto_estoque = next((item for item in estoque if item["nome"] == venda["produto"]), None)
+    if not produto_estoque:
+        messagebox.showerror("Erro", "PRODUTO NÃO ENCONTRADO NO ESTOQUE!")
+        return
+
+    # Verifica se a quantidade inserida é um valor numérico inteiro e positivo
+    qtd = entry_qtd.get()
+    if not qtd.isnumeric() or int(qtd) <= 0:
+        messagebox.showerror("Erro", "POR FAVOR INSIRA SOMENTE NÚMEROS, QUE SEJAM INTEIROS E POSITIVOS!!!!")
+        return
+    venda["qtd"] = int(qtd)
+
+    # Verifica se há quantidade suficiente no estoque
+    if venda["qtd"] > produto_estoque["qtd"]:
+        messagebox.showerror("Erro", "QUANTIDADE INSUFICIENTE NO ESTOQUE!")
+        return
+
+    # Atualiza a quantidade no estoque
+    if produto_estoque["qtd"] == 0:
+        estoque.remove(produto_estoque)
+    escrever_estoque("estoque.csv", estoque)
+
+    # Calcula o preço da venda
+    venda["preco"] = produto_estoque["preco"]
+
+    # Adiciona a escolha do meio de pagamento
+    meio_pagamento = entry_meio_pagamento.get()
+    if meio_pagamento == "Escolha a forma de pagamento":
+            messagebox.showerror("Erro", "POR FAVOR ESCOLHA UM MEIO DE PAGAMENTO!")
+            return
+    else:
+        venda["meio_pagamento"] = meio_pagamento
+    
+    parcelas = entry_parcelas.get()
+    if not parcelas.isnumeric() or int(parcelas) < 1 or int(parcelas) > 12:
+        messagebox.showerror("Erro", "PARCELAMENTO DEVE SER DE 1 A 12 VEZES!")
+        return
+
+    atualizar_preco(entry_produto, entry_qtd, estoque, label_preco)
+    atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, estoque, label_valor_mensal, meio_pagamento)
+
+    # Adiciona a venda ao histórico
+    produto_estoque["qtd"] -= venda["qtd"]
+    vendas.append(venda)
+    # Limita o histórico a 12 vendas
+    if len(vendas) > 12:
+        vendas = [venda]
+    escrever_vendas(nome_arquivo_vendas, vendas)
+
+    # Exibe uma mensagem de sucesso e limpa os campos de entrada
+    messagebox.showinfo("Sucesso", "VENDA REGISTRADA COM SUCESSO!")
+    entry_produto.delete(0, END)
+    entry_qtd.delete(0, END)
+    label_preco.config(text="")
 
 # Função para exibir os gráficos do caixa
 def exibir_graficos(frame, vendas):
@@ -354,7 +356,7 @@ def acessar_caixa(application):
             
             Button(frame_registrar, text="Limpar Campos", command=lambda: self.limpar_campos(entry_produto, entry_qtd, entry_meio_pagamento, label_preco), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
             
-            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, "historico.csv", entry_produto, entry_qtd, meio_pagamento_var, entry_parcelas, label_preco), bg='#363636', fg='white')
+            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, "historico.csv", entry_produto, entry_qtd, meio_pagamento_var, entry_parcelas, label_preco, label_valor_mensal), bg='#363636', fg='white')
             bt_confirmar.place(relx=0.68, rely=0.88, relwidth=0.3, relheight=0.1)
 
         def voltar_menu_principal(self):
