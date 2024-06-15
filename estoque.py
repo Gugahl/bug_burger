@@ -7,6 +7,7 @@ from tkinter import ttk
 # Define as dimensões da janela
 altura = 720
 largura = 1280
+historico_movimentacoes = []
 
 # Função para adicionar um produto ao estoque
 def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco):
@@ -52,7 +53,9 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
     # Criar o dicionário do produto
     produto = {"nome": nome, "qtd": qtd, "preco": preco}
 
-    # Adicionar ou atualizar o produto no estoque
+    historico_movimentacoes = []
+
+    # Atualizar estoque
     if len(estoque) == 0:
         estoque.append(produto)
     else:
@@ -65,6 +68,14 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
                 break
         if not existe:
             estoque.append(produto)
+
+    # Registrar movimentação no histórico
+    historico_movimentacoes.append({
+        "tipo": "entrada",
+        "produto": produto["nome"],
+        "quantidade": produto["qtd"],
+        "preco_unitario": produto["preco"]
+    })
 
     # Escrever o estoque atualizado no arquivo
     escrever_estoque(nome_arquivo, estoque)
@@ -106,21 +117,22 @@ def obter_estoque(estoque):
 # Função para ler o estoque de um arquivo CSV
 def ler_estoque(nome_arquivo):
     estoque = []
-    if os.path.exists(nome_arquivo):
-        with open(nome_arquivo, 'r') as arquivo:
-            leitor_csv = csv.DictReader(arquivo)
-            for linha in leitor_csv:
-                estoque.append({"nome": linha['nome'], "qtd": int(linha['qtd']), "preco": float(linha['preco'])})
-    return estoque
+    arquivo = open(nome_arquivo, 'r')
+    leitor_csv = csv.DictReader(arquivo)
+    for linha in leitor_csv:
+        estoque.append({"nome": linha['nome'], "qtd": int(linha['qtd']), "preco": float(linha['preco'])})
+    arquivo.close()
+    return estoque if estoque else []
 
 # Função para escrever o estoque em um arquivo CSV
 def escrever_estoque(nome_arquivo, estoque):
-    with open(nome_arquivo, 'w', newline='') as arquivo:
-        cabecalho = ['nome', 'qtd', 'preco']
-        escritor_csv = csv.DictWriter(arquivo, fieldnames=cabecalho)
-        escritor_csv.writeheader()
-        for item in estoque:
-            escritor_csv.writerow(item)
+    arquivo = open(nome_arquivo, 'w', newline='')
+    cabecalho = ['nome', 'qtd', 'preco']
+    escritor_csv = csv.DictWriter(arquivo, fieldnames=cabecalho)
+    escritor_csv.writeheader()
+    for item in estoque:
+        escritor_csv.writerow(item)
+    arquivo.close()
 
 def organizar_estoque(frame, estoque):
     frame_estoque = Frame(frame, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
@@ -236,7 +248,6 @@ def acessar_estoque(application):
             self.entry_nome.delete(0, END)
 
         def gerar_pdf(self):
-            # Aqui você pode adicionar a lógica para gerar um PDF com os dados do estoque
             messagebox.showinfo("Gerar PDF", "Lógica para gerar PDF ainda não implementada! (Somente na próxima atualização)")
 
     EstoqueApp(application.root)

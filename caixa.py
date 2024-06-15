@@ -6,34 +6,32 @@ from tkinter import messagebox
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from collections import Counter
-from estoque import ler_estoque, escrever_estoque  # Importando diretamente as funções necessárias do módulo estoque
+from estoque import ler_estoque, escrever_estoque, salvar_historico_movimentacoes
 
-altura = 720
-largura = 1280
+altura, largura = 720, 1280
 
-# Função para ler o histórico de vendas do arquivo CSV
 def ler_vendas(nome_arquivo):
     vendas = []
     if os.path.exists(nome_arquivo):
-        with open(nome_arquivo, 'r', newline='') as arquivo:
-            reader = csv.reader(arquivo)
-            for linha in reader:
-                if len(linha) == 5:
-                    data, produto, qtd, preco, meio_pagamento = linha
-                    vendas.append({"data": data, "produto": produto, "qtd": int(qtd), "preco": float(preco), "meio_pagamento": meio_pagamento})
-                else:
-                    print(f"Linha ignorada por formatação incorreta: {linha}")
+        arquivo = open(nome_arquivo, 'r', newline='')
+        reader = csv.reader(arquivo)
+        for linha in reader:
+            if len(linha) == 5:
+                data, produto, qtd, preco, meio_pagamento = linha
+                vendas.append({"data": data, "produto": produto, "qtd": int(qtd), "preco": float(preco), "meio_pagamento": meio_pagamento})
+            else:
+                print(f"Linha ignorada por formatação incorreta: {linha}")
+        arquivo.close()
     return vendas
 
-# Função para escrever o histórico de vendas no arquivo CSV
 def escrever_vendas(nome_arquivo, vendas):
-    with open(nome_arquivo, 'w', newline='') as arquivo:
-        writer = csv.writer(arquivo)
-        for venda in vendas:
-            preco_formatado = round(venda['preco'], 2)  # Limita o preço a dois pontos flutuantes após a vírgula
-            writer.writerow([venda['data'], venda['produto'], venda['qtd'], preco_formatado, venda['meio_pagamento']])
-            
-# Função para atualizar o preço com base no produto e na quantidade inseridos
+    arquivo = open(nome_arquivo, 'w', newline='')
+    writer = csv.writer(arquivo)
+    for venda in vendas:
+        preco_formatado = round(venda['preco'], 2)  # Limita o preço a dois pontos flutuantes após a vírgula
+        writer.writerow([venda['data'], venda['produto'], venda['qtd'], preco_formatado, venda['meio_pagamento']])
+    arquivo.close()
+
 def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
     # Obtém o nome do produto e a quantidade inserida
     produto_nome = entry_produto.get().upper()
@@ -50,20 +48,23 @@ def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
         # Se o produto não existir ou a quantidade for inválida, exibe "-"
         label_preco.config(text="Preço: -")
 
-# Função para atualizar o valor mensal com base no número de parcelas
 def atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, estoque, label_valor_mensal, meio_pagamento):
     produto_nome = entry_produto.get().upper()
     qtd = entry_qtd.get()
     parcelas = entry_parcelas.get()
-    
+
     # Verifica se é cartão de crédito e se tem mais de 12 parcelas
     if meio_pagamento == "Cartão de Crédito":
-        parcelas = entry_parcelas.get()
         if not parcelas.isnumeric() or int(parcelas) < 1 or int(parcelas) > 12:
             messagebox.showerror("Erro", "PARCELAMENTO DEVE SER DE 1 A 12 VEZES!")
             return
 
-    produto_estoque = next((item for item in estoque if item["nome"] == produto_nome), None)
+    # Procura o produto no estoque
+    produto_estoque = None
+    for item in estoque:
+        if item["nome"] == produto_nome:
+            produto_estoque = item
+            break
 
     if produto_estoque and qtd.isnumeric() and int(qtd) > 0 and parcelas.isnumeric() and 1 <= int(parcelas) <= 12:
         preco_total = produto_estoque["preco"] * int(qtd)
@@ -75,25 +76,45 @@ def atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, estoque, la
     else:
         label_valor_mensal.config(text="Valor Mensal: R$")
 
-# Função para registrar uma venda
+def encontrar_produto_estoque(produto_nome, estoque):
+    for item in estoque:
+        if item["nome"] == produto_nome:
+            return item
+    return None
+
+def validar_quantidade(qtd):
+    return qtd.isnumeric() and int(qtd) > 0
+
+def validar_parcelas(parcelas):
+    return parcelas.isnumeric() and 1 <= int(parcelas) <= 12
+
 def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_qtd, entry_meio_pagamento, entry_parcelas, label_preco, label_valor_mensal):
     # Cria um dicionário para armazenar os dados da venda
     venda = {"data": None, "produto": None, "qtd": None, "preco": None, "meio_pagamento": None}
+
     # Obtém a data e hora atual
     venda["data"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
     # Obtém o nome do produto inserido pelo usuário
     venda["produto"] = entry_produto.get().upper()
 
+    if not venda["produto"].isalnum():
+        messagebox.showerror("Erro", "Produtos com caracteres especiais não são registrados no estoque, tente novamente com nomes alfanuméricos.")
+        return
+    
+    if venda["produto"][0].isnumeric():
+        messagebox.showerror("Erro", "Produtos que começam com números não são registrados no estoque, tente novamente com outras combinações alfanuméricas.")
+
     # Verifica se o produto está no estoque
-    produto_estoque = next((item for item in estoque if item["nome"] == venda["produto"]), None)
+    produto_estoque = encontrar_produto_estoque(venda["produto"], estoque)
     if not produto_estoque:
         messagebox.showerror("Erro", "PRODUTO NÃO ENCONTRADO NO ESTOQUE!")
         return
 
     # Verifica se a quantidade inserida é um valor numérico inteiro e positivo
     qtd = entry_qtd.get()
-    if not qtd.isnumeric() or int(qtd) <= 0:
-        messagebox.showerror("Erro", "POR FAVOR INSIRA SOMENTE NÚMEROS, QUE SEJAM INTEIROS E POSITIVOS!!!!")
+    if not validar_quantidade(qtd):
+        messagebox.showerror("Erro", "POR FAVOR INSIRA SOMENTE NÚMEROS, QUE SEJAM INTEIROS E POSITIVOS!")
         return
     venda["qtd"] = int(qtd)
 
@@ -102,128 +123,111 @@ def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_q
         messagebox.showerror("Erro", "QUANTIDADE INSUFICIENTE NO ESTOQUE!")
         return
 
-    # Atualiza a quantidade no estoque
-    if produto_estoque["qtd"] == 0:
-        estoque.remove(produto_estoque)
-    escrever_estoque("estoque.csv", estoque)
-
     # Calcula o preço da venda
-    venda["preco"] = produto_estoque["preco"]
+    venda["preco"] = produto_estoque["preco"] * venda["qtd"]
 
     # Adiciona a escolha do meio de pagamento
     meio_pagamento = entry_meio_pagamento.get()
     if meio_pagamento == "Escolha a forma de pagamento":
-            messagebox.showerror("Erro", "POR FAVOR ESCOLHA UM MEIO DE PAGAMENTO!")
-            return
-    else:
-        venda["meio_pagamento"] = meio_pagamento
-    
+        messagebox.showerror("Erro", "POR FAVOR ESCOLHA UM MEIO DE PAGAMENTO!")
+        return
+    venda["meio_pagamento"] = meio_pagamento
+
+    # Verifica se o parcelamento é válido
     parcelas = entry_parcelas.get()
-    if not parcelas.isnumeric() or int(parcelas) < 1 or int(parcelas) > 12:
+    if meio_pagamento == "Cartão de Crédito" and not validar_parcelas(parcelas):
         messagebox.showerror("Erro", "PARCELAMENTO DEVE SER DE 1 A 12 VEZES!")
         return
 
+    # Atualiza o preço e valor mensal
     atualizar_preco(entry_produto, entry_qtd, estoque, label_preco)
     atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, estoque, label_valor_mensal, meio_pagamento)
 
     # Adiciona a venda ao histórico
     produto_estoque["qtd"] -= venda["qtd"]
+
+    escrever_estoque("estoque.csv", estoque)
     vendas.append(venda)
     # Limita o histórico a 12 vendas
     if len(vendas) > 12:
         vendas = [venda]
     escrever_vendas(nome_arquivo_vendas, vendas)
 
+
+
     # Exibe uma mensagem de sucesso e limpa os campos de entrada
     messagebox.showinfo("Sucesso", "VENDA REGISTRADA COM SUCESSO!")
     entry_produto.delete(0, END)
     entry_qtd.delete(0, END)
+    entry_meio_pagamento.set('Escolha a forma de pagamento')
+    entry_parcelas.delete(0, END)
     label_preco.config(text="")
+    label_valor_mensal.config(text="")
 
-# Função para exibir os gráficos do caixa
+
 def exibir_graficos(frame, vendas):
     # Criação de um frame para exibir os gráficos
     frame_graficos = Frame(frame, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
     frame_graficos.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
 
-    # Verificação se o arquivo de histórico existe e se há dados de vendas
-    if not os.path.exists('historico.csv') or not vendas:
-        # Exibir mensagem de erro se não houver dados
-        Label(frame_graficos, text="NENHUM DADO COMPUTADO...", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
-        # Botão para voltar ao menu anterior
-        Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+    if not vendas:
+        mostrar_mensagem_erro(frame_graficos)
         return
-    
-    # Inicialização dos contadores para produtos vendidos e meios de pagamento
-    produtos_vendidos = Counter()
-    meios_pagamento = Counter()
 
     # Processamento dos dados de vendas
-    for venda in vendas:
-        produto = venda.get("produto")
-        meio_pagamento = venda.get("meio_pagamento")
-        quantidade = venda.get("qtd", 1)
-        
-        # Verificação e adição da quantidade vendida ao contador de produtos
-        if produto and isinstance(quantidade, int) and quantidade > 0:
-            produtos_vendidos[produto] += quantidade
-        
-        # Modificação para agrupar crédito parcelado como crédito
-        if meio_pagamento == 'Crédito Parcelado':
-            meio_pagamento = 'Cartão de Crédito'
-        
-        # Adição do meio de pagamento ao contador
-        if meio_pagamento:
-            meios_pagamento[meio_pagamento] += 1
-    
+    produtos_vendidos, meios_pagamento = processar_dados_vendas(vendas)
+
     # Obtenção dos produtos mais vendidos e meios de pagamento mais utilizados
     produtos_mais_vendidos = produtos_vendidos.most_common()
     meios_pagamento_utilizados = meios_pagamento.most_common()
-    
-    # Criação e exibição do gráfico de pizza para produtos mais vendidos
-    fig1 = plt.figure(figsize=(4, 4), facecolor='#E8E8E8')
-    ax1 = fig1.add_subplot(111)
-    
-    if produtos_mais_vendidos:
-        # Dados para o gráfico de pizza
-        produtos, quantidades = zip(*produtos_mais_vendidos)
-        ax1.pie(quantidades, labels=produtos, autopct='%1.1f%%', startangle=140)
-    else:
-        # Exibir mensagem se não houver dados
-        ax1.pie([1], labels=["Sem dados"], startangle=140)
 
-    ax1.set_title('Produtos mais vendidos por quantidade')
-    ax1.set_facecolor('#E8E8E8')  # Define a cor de fundo do gráfico
-    
-    # Adicionar o gráfico ao frame
-    canvas1 = FigureCanvasTkAgg(fig1, master=frame_graficos)
-    canvas1.draw()
-    canvas1.get_tk_widget().place(relx=0.02, rely=0.02, relwidth=0.45, relheight=0.86)
-    
-    # Criação e exibição do gráfico de pizza para meios de pagamento
-    fig2 = plt.figure(figsize=(4, 4), facecolor='#E8E8E8')
-    ax2 = fig2.add_subplot(111)
-    
-    if meios_pagamento_utilizados:
-        # Dados para o gráfico de pizza
-        meios, frequencias = zip(*meios_pagamento_utilizados)
-        ax2.pie(frequencias, labels=meios, autopct='%1.1f%%', startangle=140)
-    else:
-        # Exibir mensagem se não houver dados
-        ax2.pie([1], labels=["Sem dados"], startangle=140)
-
-    ax2.set_title('Meios de pagamento mais utilizados')
-    ax2.set_facecolor('#E8E8E8')  # Define a cor de fundo do gráfico
-    
-    # Adicionar o gráfico ao frame
-    canvas2 = FigureCanvasTkAgg(fig2, master=frame_graficos)
-    canvas2.draw()
-    canvas2.get_tk_widget().place(relx=0.52, rely=0.02, relwidth=0.45, relheight=0.86)
+    # Criação e exibição dos gráficos
+    criar_grafico_pizza(frame_graficos, produtos_mais_vendidos, 'Produtos mais vendidos por quantidade', 0.02)
+    criar_grafico_pizza(frame_graficos, meios_pagamento_utilizados, 'Meios de pagamento mais utilizados', 0.52)
 
     # Botão para voltar ao menu anterior
     Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
 
-from tkinter import Frame, Label, Button
+def mostrar_mensagem_erro(frame_graficos):
+    Label(frame_graficos, text="NENHUM DADO COMPUTADO...", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
+    Button(frame_graficos, text="Voltar ao menu anterior", command=lambda: frame_graficos.destroy(), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+
+def processar_dados_vendas(vendas):
+    produtos_vendidos = Counter()
+    meios_pagamento = Counter()
+
+    for venda in vendas:
+        produto = venda.get("produto")
+        meio_pagamento = venda.get("meio_pagamento")
+        quantidade = venda.get("qtd", 1)
+
+        if produto and isinstance(quantidade, int) and quantidade > 0:
+            produtos_vendidos[produto] += quantidade
+
+        if meio_pagamento == 'Crédito Parcelado':
+            meio_pagamento = 'Cartão de Crédito'
+
+        if meio_pagamento:
+            meios_pagamento[meio_pagamento] += 1
+
+    return produtos_vendidos, meios_pagamento
+
+def criar_grafico_pizza(frame_graficos, dados, titulo, relx):
+    fig = plt.figure(figsize=(4, 4), facecolor='#E8E8E8')
+    ax = fig.add_subplot(111)
+
+    if dados:
+        labels, valores = zip(*dados)
+        ax.pie(valores, labels=labels, autopct='%1.1f%%', startangle=140)
+    else:
+        ax.pie([1], labels=["Sem dados"], startangle=140)
+
+    ax.set_title(titulo)
+    ax.set_facecolor('#E8E8E8')
+
+    canvas = FigureCanvasTkAgg(fig, master=frame_graficos)
+    canvas.draw()
+    canvas.get_tk_widget().place(relx=relx, rely=0.02, relwidth=0.45, relheight=0.86)
 
 # Função para exibir o histórico de vendas
 def historico_vendas(frame, vendas):
@@ -299,65 +303,70 @@ def acessar_caixa(application):
             self.bt_sair.place(relx=0.35, rely=0.65, relwidth=0.3, relheight=0.1)
 
         # Criação do formulário para registrar uma venda
+
         def form_registrar_venda(self):
-            frame_registrar = Frame(self.frame1, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
-            frame_registrar.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+            # Função para atualizar o preço com base no produto e na quantidade
+            def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
+                # Lógica para calcular o preço com base no produto e quantidade (exemplo)
+                preco_unitario = estoque.get(entry_produto.get(), 0)  # Substitua pela lógica adequada
+                quantidade = int(entry_qtd.get()) if entry_qtd.get().isdigit() else 0
+                preco_total = preco_unitario * quantidade
+                label_preco.config(text=f"Preço: R${preco_total:.2f}")
 
-            Label(frame_registrar, text="Nome do Produto", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.2, relheight=0.05)
-            entry_produto = Entry(frame_registrar)
-            entry_produto.place(relx=0.35, rely=0.05, relwidth=0.5, relheight=0.05)
-            
-            Label(frame_registrar, text="Quantidade", bg='#E8E8E8').place(relx=0.15, rely=0.12, relwidth=0.2, relheight=0.05)
-            entry_qtd = Entry(frame_registrar)
-            entry_qtd.place(relx=0.35, rely=0.12, relwidth=0.5, relheight=0.05)
-            
-            # Rótulo para exibir o preço do produto
-            label_preco = Label(frame_registrar, text="Preço: -", bg='#E8E8E8')
-            label_preco.place(relx=0.35, rely=0.19, relwidth=0.5, relheight=0.05)
-            
-            # Função para atualizar o preço quando o nome do produto ou a quantidade são alterados
-            entry_produto.bind("<KeyRelease>", lambda event: atualizar_preco(entry_produto, entry_qtd, self.estoque, label_preco))
-            entry_qtd.bind("<KeyRelease>", lambda event: atualizar_preco(entry_produto, entry_qtd, self.estoque, label_preco))
+            # Função para limpar os campos do formulário
+            def limpar_campos(entry_produto, entry_qtd, entry_meio_pagamento, label_preco):
+                entry_produto.delete(0, 'end')
+                entry_qtd.delete(0, 'end')
+                entry_meio_pagamento.set("Escolha a forma de pagamento")
+                label_preco.config(text="Preço: -")
 
-            # Entrada para o meio de pagamento
-            Label(frame_registrar, text="Meio de Pagamento:", bg='#E8E8E8').place(relx=0.15, rely=0.26, relwidth=0.2, relheight=0.05)
-            meio_pagamento_var = StringVar(frame_registrar)
-            meio_pagamento_var.set("Escolha a forma de pagamento")
-            entry_meio_pagamento = OptionMenu(frame_registrar, meio_pagamento_var, "Dinheiro", "Cartão de Crédito", "Cartão de Débito", "Pix")
-            entry_meio_pagamento.place(relx=0.35, rely=0.26, relwidth=0.5, relheight=0.05)
-
-            # Frame para número de parcelas (inicialmente oculto)
-            frame_parcelas = Frame(frame_registrar, bg='#E8E8E8')
-            frame_parcelas.place(relx=0.35, rely=0.35, relwidth=0.5, relheight=0.1)
-
-            # Criação da entrada de número de parcelas
-            Label(frame_parcelas, text="Número de Parcelas:", bg='#E8E8E8').place(relx=0.0, rely=0.0, relwidth=0.5, relheight=0.5)
-            entry_parcelas = Entry(frame_parcelas)
-            entry_parcelas.place(relx=0.5, rely=0.0, relwidth=0.5, relheight=0.5)
-
-            # Rótulo para o valor mensal (inicialmente oculto)
-            label_valor_mensal = Label(frame_registrar, text="Valor Mensal: R$", bg='#E8E8E8')
-
+            # Função para atualizar visibilidade de parcelas e valor mensal
             def atualizar_parcelas(*args):
                 if meio_pagamento_var.get() == "Cartão de Crédito":
                     frame_parcelas.place(relx=0.35, rely=0.35, relwidth=0.5, relheight=0.1)
                     label_valor_mensal.place(relx=0.35, rely=0.45, relwidth=0.5, relheight=0.05)
-                    # Atualiza o valor mensal quando o número de parcelas é alterado
                     entry_parcelas.bind("<KeyRelease>", lambda event: atualizar_valor_mensal(entry_qtd, entry_produto, entry_parcelas, self.estoque, label_valor_mensal, meio_pagamento_var))
                 else:
                     frame_parcelas.place_forget()
                     label_valor_mensal.place_forget()
 
-            # Associa a função de atualização ao trace do meio de pagamento
+            # Criar o frame principal para o formulário
+            frame_registrar = Frame(self.frame1, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
+            frame_registrar.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+
+            # Widgets do formulário
+            Label(frame_registrar, text="Nome do Produto", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.2, relheight=0.05)
+            entry_produto = Entry(frame_registrar)
+            entry_produto.place(relx=0.35, rely=0.05, relwidth=0.5, relheight=0.05)
+
+            Label(frame_registrar, text="Quantidade", bg='#E8E8E8').place(relx=0.15, rely=0.12, relwidth=0.2, relheight=0.05)
+            entry_qtd = Entry(frame_registrar)
+            entry_qtd.place(relx=0.35, rely=0.12, relwidth=0.5, relheight=0.05)
+
+            label_preco = Label(frame_registrar, text="Preço: -", bg='#E8E8E8')
+            label_preco.place(relx=0.35, rely=0.19, relwidth=0.5, relheight=0.05)
+
+            meio_pagamento_var = StringVar(frame_registrar)
+            meio_pagamento_var.set("Escolha a forma de pagamento")
+            entry_meio_pagamento = OptionMenu(frame_registrar, meio_pagamento_var, "Dinheiro", "Cartão de Crédito", "Cartão de Débito", "Pix")
+            entry_meio_pagamento.place(relx=0.35, rely=0.26, relwidth=0.5, relheight=0.05)
+
+            frame_parcelas = Frame(frame_registrar, bg='#E8E8E8')
+            frame_parcelas.place(relx=0.35, rely=0.35, relwidth=0.5, relheight=0.1)
+
+            Label(frame_parcelas, text="Número de Parcelas:", bg='#E8E8E8').place(relx=0.0, rely=0.0, relwidth=0.5, relheight=0.5)
+            entry_parcelas = Entry(frame_parcelas)
+            entry_parcelas.place(relx=0.5, rely=0.0, relwidth=0.5, relheight=0.5)
+
+            label_valor_mensal = Label(frame_registrar, text="Valor Mensal: R$", bg='#E8E8E8')
+
+            # Associar a função de atualização ao trace do meio de pagamento
             meio_pagamento_var.trace_add("write", atualizar_parcelas)
-            
-            # Botão para voltar ao menu do caixa
+
+            # Botões
             Button(frame_registrar, text="Voltar ao menu anterior", command=frame_registrar.destroy, bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
-            
-            Button(frame_registrar, text="Limpar Campos", command=lambda: self.limpar_campos(entry_produto, entry_qtd, entry_meio_pagamento, label_preco), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
-            
-            bt_confirmar = Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, "historico.csv", entry_produto, entry_qtd, meio_pagamento_var, entry_parcelas, label_preco, label_valor_mensal), bg='#363636', fg='white')
-            bt_confirmar.place(relx=0.68, rely=0.88, relwidth=0.3, relheight=0.1)
+            Button(frame_registrar, text="Limpar Campos", command=lambda: limpar_campos(entry_produto, entry_qtd, meio_pagamento_var, label_preco), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+            Button(frame_registrar, text="Confirmar", command=lambda: registrar_venda(self.vendas, self.estoque, "historico.csv", entry_produto, entry_qtd, meio_pagamento_var, entry_parcelas, label_preco, label_valor_mensal), bg='#363636', fg='white').place(relx=0.68, rely=0.88, relwidth=0.3, relheight=0.1)
 
         def voltar_menu_principal(self):
             self.frame1.place_forget()  # Oculta o frame atual
