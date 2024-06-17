@@ -102,7 +102,7 @@ def remover_produto(estoque, nome_arquivo, entry_nome):
                 entry_nome.delete(0, END)
                 return
         if not existe:
-            messagebox.showerror("ERRO!", f"ERRO! NÃO HÁ PRODUTO CHAMADO '{nome}' NO ESTOQUE")
+            messagebox.showerror("ERRO!", f"NÃO HÁ PRODUTO CHAMADO '{nome}' NO ESTOQUE")
 
 # Função para obter e exibir o estoque
 def obter_estoque(estoque):
