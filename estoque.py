@@ -11,6 +11,7 @@ historico_movimentacoes = []
 
 # Função para adicionar um produto ao estoque
 def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco):
+    global historico_movimentacoes
     nome = entry_nome.get().upper()
     qtd = entry_qtd.get()
     preco = entry_preco.get()
@@ -19,8 +20,8 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
     if not nome:
         messagebox.showerror("ERRO!", "O NOME DO PRODUTO NÃO PODE SER VAZIO!")
         return
+    tem_letra = False
     for c in nome:
-        tem_letra = False
         if c.isalnum():
             tem_letra = True
             break
@@ -52,8 +53,6 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
 
     # Criar o dicionário do produto
     produto = {"nome": nome, "qtd": qtd, "preco": preco}
-
-    historico_movimentacoes = []
 
     # Atualizar estoque
     if len(estoque) == 0:
@@ -117,6 +116,8 @@ def obter_estoque(estoque):
 # Função para ler o estoque de um arquivo CSV
 def ler_estoque(nome_arquivo):
     estoque = []
+    if not os.path.exists(nome_arquivo):
+        return estoque
     arquivo = open(nome_arquivo, 'r')
     leitor_csv = csv.DictReader(arquivo)
     for linha in leitor_csv:
@@ -134,155 +135,91 @@ def escrever_estoque(nome_arquivo, estoque):
         escritor_csv.writerow(item)
     arquivo.close()
 
-def organizar_estoque(frame, estoque):
-    frame_estoque = Frame(frame, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
-    frame_estoque.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+def organizar_estoque(self):
+    frame_verestoque = Frame(self.root, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
+    frame_verestoque.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+
+    nome_arquivo_estoque = "estoque.csv"
+    estoque = ler_estoque(nome_arquivo_estoque)
 
     if len(estoque) == 0:
-        Label(frame_estoque, text="ESTOQUE VAZIO...", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
+        Label(frame_verestoque, text="ESTOQUE VAZIO...", bg='#E8E8E8').place(relx=0.15, rely=0.05, relwidth=0.7, relheight=0.1)
     else:
         # Cabeçalhos da tabela
-        Label(frame_estoque, text="PRODUTO", bg='#E8E8E8').place(relx=0.05, rely=0.05, relwidth=0.45, relheight=0.05)
-        Label(frame_estoque, text="ESTOQUE", bg='#E8E8E8').place(relx=0.50, rely=0.05, relwidth=0.20, relheight=0.05)
-        Label(frame_estoque, text="PREÇO", bg='#E8E8E8').place(relx=0.70, rely=0.05, relwidth=0.25, relheight=0.05)
+        Label(frame_verestoque, text="PRODUTO", bg='#E8E8E8').place(relx=0.05, rely=0.05, relwidth=0.45, relheight=0.05)
+        Label(frame_verestoque, text="ESTOQUE", bg='#E8E8E8').place(relx=0.50, rely=0.05, relwidth=0.20, relheight=0.05)
+        Label(frame_verestoque, text="PREÇO", bg='#E8E8E8').place(relx=0.70, rely=0.05, relwidth=0.25, relheight=0.05)
 
         for i, produto in enumerate(estoque):
             # Exibe cada valor na sua posição correspondente
-            Label(frame_estoque, text=produto['nome'], bg='#E8E8E8').place(relx=0.05, rely=0.1 + i*0.05, relwidth=0.45, relheight=0.05)
-            Label(frame_estoque, text=produto['qtd'], bg='#E8E8E8').place(relx=0.50, rely=0.1 + i*0.05, relwidth=0.20, relheight=0.05)
-            Label(frame_estoque, text=f"R${produto['preco']:.2f}", bg='#E8E8E8').place(relx=0.70, rely=0.1 + i*0.05, relwidth=0.25, relheight=0.05)
+            Label(frame_verestoque, text=produto['nome'], bg='#E8E8E8').place(relx=0.05, rely=0.1 + i*0.05, relwidth=0.45, relheight=0.05)
+            Label(frame_verestoque, text=produto['qtd'], bg='#E8E8E8').place(relx=0.50, rely=0.1 + i*0.05, relwidth=0.20, relheight=0.05)
+            Label(frame_verestoque, text=f"R${produto['preco']:.2f}", bg='#E8E8E8').place(relx=0.70, rely=0.1 + i*0.05, relwidth=0.25, relheight=0.05)
 
     # Botão para voltar ao menu anterior
-    Button(frame_estoque, text="Voltar ao menu anterior", command=frame_estoque.destroy, bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+    Button(frame_verestoque, text="Voltar ao menu anterior", command=frame_verestoque.destroy, bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
 
 # Função para acessar e gerenciar o estoque
-def acessar_estoque(application):
-    nome_arquivo = "estoque.csv"
-    estoque = ler_estoque(nome_arquivo)
+def form_adicionar_produto(self):
+    frame_adicionar = Frame(self.root, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
+    frame_adicionar.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+
+    nome_arquivo_estoque = "estoque.csv"
+    estoque = ler_estoque(nome_arquivo_estoque)
+
+    Label(frame_adicionar, text="Nome do Produto", bg='#E8E8E8', fg='#363636').place(relx=0.15, rely=0.05, relwidth=0.2, relheight=0.05)
+    entry_nome = Entry(frame_adicionar)
+    entry_nome.place(relx=0.35, rely=0.05, relwidth=0.5, relheight=0.05)
     
-    class EstoqueApp:
-        def __init__(self, root):
-            self.root = root
-            self.estoque = ler_estoque(nome_arquivo)
-            self.nome_arquivo = nome_arquivo
-            self.criar_frames()
-            self.objetos_frame1()
+    Label(frame_adicionar, text="Quantidade", bg='#E8E8E8', fg='#363636').place(relx=0.15, rely=0.15, relwidth=0.2, relheight=0.05)
+    entry_qtd = Entry(frame_adicionar)
+    entry_qtd.place(relx=0.35, rely=0.15, relwidth=0.5, relheight=0.05)
+    
+    Label(frame_adicionar, text="Preço", bg='#E8E8E8', fg='#363636').place(relx=0.15, rely=0.25, relwidth=0.2, relheight=0.05)
+    entry_preco = Entry(frame_adicionar)
+    entry_preco.place(relx=0.35, rely=0.25, relwidth=0.5, relheight=0.05)
+    
+    bt_confirmar = Button(frame_adicionar, text="Confirmar", command=lambda: adicionar_produto(estoque, nome_arquivo_estoque, entry_nome, entry_qtd, entry_preco), bg='#363636', fg='white')
+    bt_confirmar.place(relx=0.35, rely=0.35, relwidth=0.3, relheight=0.1)
+    bt_confirmar.config(font=('Arial', 12))
+    
+    Button(frame_adicionar, text="Voltar ao menu anterior", command=frame_adicionar.destroy, bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
+    
+    Button(frame_adicionar, text="Limpar campos", command=lambda: limpar_campos_adicionar(entry_nome, entry_qtd, entry_preco), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+    
+    Button(frame_adicionar, text="Gerar PDF", command=lambda: gerar_pdf(self), bg='#363636', fg='white').place(relx=0.68, rely=0.88, relwidth=0.3, relheight=0.1)
 
-        def criar_frames(self):
-            self.frame1 = Frame(self.root, bd=8, bg='#E8E8E8',
-                                highlightbackground='#363636', highlightthickness=3)
-            self.frame1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+def form_remover_produto(self):
+    frame_remover = Frame(self.root, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
+    frame_remover.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
 
-        def objetos_frame1(self):
-            Label(self.frame1, text="Estoque", font=('Arial', 30), bg='#E8E8E8', fg='#363636').place(relx=0.35, rely=0.05, relwidth=0.3, relheight=0.1)
-            
-            self.bt_adicionar = Button(self.frame1, text="Adicionar produto", command=self.form_adicionar_produto, bg='#363636', fg='white')
-            self.bt_adicionar.place(relx=0.35, rely=0.20, relwidth=0.3, relheight=0.1)
-            self.bt_adicionar.config(font=('Arial', 12))
-            
-            self.bt_remover = Button(self.frame1, text='Remover produto', command=self.form_remover_produto, bg='#363636', fg='white')
-            self.bt_remover.place(relx=0.35, rely=0.35, relwidth=0.3, relheight=0.1)
-            self.bt_remover.config(font=('Arial', 12))
-            
-            self.bt_ver_estoque = Button(self.frame1, text='Ver estoque', command=self.ver_estoque, bg='#363636', fg='white')
-            self.bt_ver_estoque.place(relx=0.35, rely=0.50, relwidth=0.3, relheight=0.1)
-            self.bt_ver_estoque.config(font=('Arial', 12))
-            
-            self.bt_sair = Button(self.frame1, text='Voltar ao menu principal', command=self.voltar_menu_principal, bg='#363636', fg='white')
-            self.bt_sair.place(relx=0.35, rely=0.65, relwidth=0.3, relheight=0.1)
-            self.bt_sair.config(font=('Arial', 12))
+    nome_arquivo_estoque = "estoque.csv"
+    estoque = ler_estoque(nome_arquivo_estoque)
 
-        def form_adicionar_produto(self):
-            self.frame_adicionar = Frame(self.frame1, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
-            self.frame_adicionar.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+    Label(frame_remover, text="Nome do Produto", bg='#E8E8E8', fg='#363636').place(relx=0.15, relwidth=0.2, rely=0.05, relheight=0.05)
+    entry_nome = Entry(frame_remover)
+    entry_nome.place(relx=0.35, rely=0.05, relwidth=0.5, relheight=0.05)
 
-            Label(self.frame_adicionar, text="Nome do Produto", bg='#E8E8E8', fg='#363636').place(relx=0.15, rely=0.05, relwidth=0.2, relheight=0.05)
-            self.entry_nome = Entry(self.frame_adicionar)
-            self.entry_nome.place(relx=0.35, rely=0.05, relwidth=0.5, relheight=0.05)
-            
-            Label(self.frame_adicionar, text="Quantidade", bg='#E8E8E8', fg='#363636').place(relx=0.15, rely=0.15, relwidth=0.2, relheight=0.05)
-            self.entry_qtd = Entry(self.frame_adicionar)
-            self.entry_qtd.place(relx=0.35, rely=0.15, relwidth=0.5, relheight=0.05)
-            
-            Label(self.frame_adicionar, text="Preço", bg='#E8E8E8', fg='#363636').place(relx=0.15, rely=0.25, relwidth=0.2, relheight=0.05)
-            self.entry_preco = Entry(self.frame_adicionar)
-            self.entry_preco.place(relx=0.35, rely=0.25, relwidth=0.5, relheight=0.05)
-            
-            self.bt_confirmar = Button(self.frame_adicionar, text="Confirmar", command=lambda: adicionar_produto(self.estoque, self.nome_arquivo, self.entry_nome, self.entry_qtd, self.entry_preco), bg='#363636', fg='white')
-            self.bt_confirmar.place(relx=0.35, rely=0.35, relwidth=0.3, relheight=0.1)
-            self.bt_confirmar.config(font=('Arial', 12))
-            
-            Button(self.frame_adicionar, text="Voltar ao menu anterior", command=self.frame_adicionar.destroy, bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
-            
-            Button(self.frame_adicionar, text="Limpar campos", command=self.limpar_campos_adicionar, bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
-            
-            Button(self.frame_adicionar, text="Gerar PDF", command=self.gerar_pdf, bg='#363636', fg='white').place(relx=0.68, rely=0.88, relwidth=0.3, relheight=0.1)
+    Button(frame_remover, text="Confirmar", command=lambda: remover_produto(estoque, nome_arquivo_estoque, entry_nome), bg='#363636', fg='white').place(relx=0.35, rely=0.15, relwidth=0.3, relheight=0.1)
+    
+    Button(frame_remover, text="Limpar campos", command=lambda: limpar_campos_remover(entry_nome), bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
 
-        def form_remover_produto(self):
-            self.frame_remover = Frame(self.frame1, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
-            self.frame_remover.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
-            
-            Label(self.frame_remover, text="Nome do Produto", bg='#E8E8E8', fg='#363636').place(relx=0.15, relwidth=0.2, rely=0.05, relheight=0.05)
-            self.entry_nome = Entry(self.frame_remover)
-            self.entry_nome.place(relx=0.35, rely=0.05, relwidth=0.5, relheight=0.05)
-            
-            Button(self.frame_remover, text="Confirmar", command=lambda: remover_produto(self.estoque, self.nome_arquivo, self.entry_nome), bg='#363636', fg='white').place(relx=0.35, rely=0.15, relwidth=0.3, relheight=0.1)
-            
-            Button(self.frame_remover, text="Limpar campos", command=self.limpar_campos_remover, bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
+    Button(frame_remover, text="Voltar ao menu anterior", command=frame_remover.destroy, bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
 
-            Button(self.frame_remover, text="Voltar ao menu anterior", command=self.frame_remover.destroy, bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
+def ver_estoque(frame_verestoque):
+    organizar_estoque(frame_verestoque)
 
-        def ver_estoque(self):
-            organizar_estoque(self.frame1, self.estoque)
+def voltar_menu_principal_estoque(frame_estoque, frame_main):
+    frame_estoque.place_forget()  # Oculta o frame atual
+    frame_main.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)  # Mostra o frame anterior
 
-        def voltar_menu_principal(self):
-            self.frame1.place_forget()  # Oculta o frame atual
-            application.frame_atual.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)  # Mostra o frame anterior
+def limpar_campos_adicionar(entry_nome, entry_qtd, entry_preco):
+    entry_nome.delete(0, END)
+    entry_qtd.delete(0, END)
+    entry_preco.delete(0, END)
 
-        def limpar_campos_adicionar(self):
-            self.entry_nome.delete(0, END)
-            self.entry_qtd.delete(0, END)
-            self.entry_preco.delete(0, END)
+def limpar_campos_remover(entry_nome):
+    entry_nome.delete(0, END)
 
-        def limpar_campos_remover(self):
-            self.entry_nome.delete(0, END)
-
-        def gerar_pdf(self):
-            messagebox.showinfo("Gerar PDF", "Lógica para gerar PDF ainda não implementada! (Somente na próxima atualização)")
-
-    EstoqueApp(application.root)
-
-# Classe principal do aplicativo
-class MainApp:
-    def __init__(self, root):
-        self.root = root
-        self.tela()
-        self.frames()
-        self.objetos_frame1()
-
-    def tela(self):
-        self.altura = altura
-        self.largura = largura
-        self.root.title("Gerenciamento de Estoque")
-        self.root.configure(background='#363636')
-        self.root.geometry(f"{self.largura}x{self.altura}")
-        self.root.resizable(True, True)
-
-    def frames(self):
-        self.frame1 = Frame(self.root, bd=8, bg='#E8E8E8',
-                            highlightbackground='#363636', highlightthickness=3)
-        self.frame1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
-
-    def objetos_frame1(self):
-        self.bt_acessar_estoque = Button(self.frame1, text="Acessar Estoque", command=lambda: acessar_estoque(self), bg='#363636', fg='white')
-        self.bt_acessar_estoque.place(relx=0.35, rely=0.40, relwidth=0.3, relheight=0.1)
-        self.bt_acessar_estoque.config(font=('Arial', 12))
-        self.bt_sair = Button(self.frame1, text='Sair', command=self.root.destroy, bg='#363636', fg='white')
-        self.bt_sair.place(relx=0.35, rely=0.55, relwidth=0.3, relheight=0.1)
-        self.bt_sair.config(font=('Arial', 12))
-
-# Exemplo de chamada à função principal
-if __name__ == "__main__":
-    root = Tk()
-    app = MainApp(root)
-    root.mainloop()
+def gerar_pdf(self):
+    messagebox.showinfo("Gerar PDF", "Lógica para gerar PDF ainda não implementada! (Somente na próxima atualização)")
