@@ -264,7 +264,9 @@ def historico_vendas(frame, vendas):
 
 def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
     # Lógica para calcular o preço com base no produto e quantidade (exemplo)
-    preco_unitario = estoque.get(entry_produto.get(), 0)  # Substitua pela lógica adequada
+    for produto in estoque:
+        if produto['nome'] == entry_produto:
+            preco_unitario = produto['preco']
     quantidade = int(entry_qtd.get()) if entry_qtd.get().isdigit() else 0
     preco_total = preco_unitario * quantidade
     label_preco.config(text=f"Preço: R${preco_total:.2f}")
