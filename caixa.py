@@ -98,9 +98,7 @@ def registrar_venda(vendas, estoque, nome_arquivo_vendas, entry_produto, entry_q
     # Obtém o nome do produto inserido pelo usuário
     venda["produto"] = entry_produto.get().upper()
 
-    if not venda["produto"].isalnum():
-        messagebox.showerror("Erro", "Produtos com caracteres especiais não são registrados no estoque, tente novamente com nomes alfanuméricos.")
-        return
+
     
     if venda["produto"][0].isnumeric():
         messagebox.showerror("Erro", "Produtos que começam com números não são registrados no estoque, tente novamente com outras combinações alfanuméricas.")
@@ -263,13 +261,16 @@ def historico_vendas(frame, vendas):
     Button(frame_historico, text="Voltar ao menu anterior", command=frame_historico.destroy, bg='#363636', fg='white').place(relx=0.35, rely=0.88, relwidth=0.3, relheight=0.1)
 
 def atualizar_preco(entry_produto, entry_qtd, estoque, label_preco):
-    # Lógica para calcular o preço com base no produto e quantidade (exemplo)
-    for produto in estoque:
-        if produto['nome'] == entry_produto:
-            preco_unitario = produto['preco']
-    quantidade = int(entry_qtd.get()) if entry_qtd.get().isdigit() else 0
-    preco_total = preco_unitario * quantidade
-    label_preco.config(text=f"Preço: R${preco_total:.2f}")
+    produto_nome = entry_produto.get().upper()
+    qtd = entry_qtd.get()
+
+    produto_estoque = next((item for item in estoque if item["nome"] == produto_nome), None)
+
+    if produto_estoque and qtd.isdigit() and int(qtd) > 0:
+        preco_total = produto_estoque["preco"] * int(qtd)
+        label_preco.config(text=f"Preço: R${preco_total:.2f}")
+    else:
+        label_preco.config(text="Preço: -")
 
 # Função para limpar os campos do formulário
 def limpar_campos(entry_produto, entry_qtd, entry_meio_pagamento, label_preco):

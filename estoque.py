@@ -3,6 +3,7 @@ import csv
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
+import re
 
 # Define as dimensões da janela
 altura = 720
@@ -46,7 +47,7 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
 
     # Verificar se o preço é válido
     preco = preco.replace(",", ".")
-    if not preco.replace(".", "", 1).isdigit() or float(preco) <= 0:
+    if not re.fullmatch(r"\d+(\.\d{1,2})?", preco) or float(preco) <= 0:
         messagebox.showerror("ERRO!", "POR FAVOR INSIRA SOMENTE VALORES NUMÉRICOS E ACIMA DE ZERO!")
         return
     preco = float(preco)
@@ -78,6 +79,7 @@ def adicionar_produto(estoque, nome_arquivo, entry_nome, entry_qtd, entry_preco)
 
     # Escrever o estoque atualizado no arquivo
     escrever_estoque(nome_arquivo, estoque)
+    sincronizar_estoque_em_memoria(estoque, nome_arquivo)
     messagebox.showinfo("SUCESSO!", f"{produto['qtd']} UNIDADES DE '{produto['nome']}' DE PREÇO 'R${produto['preco']}' FORAM ADICIONADAS AO ESTOQUE")
     entry_nome.delete(0, END)
     entry_qtd.delete(0, END)
@@ -98,6 +100,7 @@ def remover_produto(estoque, nome_arquivo, entry_nome):
                 estoque.remove(i)
                 messagebox.showinfo("SUCESSO!", "PRODUTO REMOVIDO COM SUCESSO!")
                 escrever_estoque(nome_arquivo, estoque)
+                sincronizar_estoque_em_memoria(estoque, nome_arquivo)
                 entry_nome.delete(0, END)
                 return
         if not existe:
@@ -118,24 +121,39 @@ def ler_estoque(nome_arquivo):
     estoque = []
     if not os.path.exists(nome_arquivo):
         return estoque
-    arquivo = open(nome_arquivo, 'r')
-    leitor_csv = csv.DictReader(arquivo)
-    for linha in leitor_csv:
-        estoque.append({"nome": linha['nome'], "qtd": int(linha['qtd']), "preco": float(linha['preco'])})
-    arquivo.close()
-    return estoque if estoque else []
+
+    with open(nome_arquivo, 'r') as arquivo:
+        leitor_csv = csv.DictReader(arquivo)
+        for linha in leitor_csv:
+            try:
+                estoque.append({
+                    "nome": linha['nome'].upper(),
+                    "qtd": int(linha['qtd']),
+                    "preco": float(linha['preco'].replace(",", "."))
+                })
+            except (ValueError, KeyError):
+                print(f"Linha inválida ignorada: {linha}")
+    return estoque
 
 # Função para escrever o estoque em um arquivo CSV
 def escrever_estoque(nome_arquivo, estoque):
-    arquivo = open(nome_arquivo, 'w', newline='')
-    cabecalho = ['nome', 'qtd', 'preco']
-    escritor_csv = csv.DictWriter(arquivo, fieldnames=cabecalho)
-    escritor_csv.writeheader()
-    for item in estoque:
-        escritor_csv.writerow(item)
-    arquivo.close()
+    with open(nome_arquivo, 'w', newline='') as arquivo:
+        cabecalho = ['nome', 'qtd', 'preco']
+        escritor_csv = csv.DictWriter(arquivo, fieldnames=cabecalho)
+        escritor_csv.writeheader()
+        for item in estoque:
+            item_formatado = {
+                "nome": item["nome"],
+                "qtd": item["qtd"],
+                "preco": f"{item['preco']:.2f}"  # formato com 2 casas decimais
+            }
+            escritor_csv.writerow(item_formatado)
 
-def organizar_estoque(self):
+def sincronizar_estoque_em_memoria(estoque, nome_arquivo):
+    estoque.clear()
+    estoque.extend(ler_estoque(nome_arquivo))
+
+def ver_estoque_interface(self):
     frame_verestoque = Frame(self.root, bd=8, bg='#E8E8E8', highlightbackground='#363636', highlightthickness=3)
     frame_verestoque.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
 
@@ -207,7 +225,7 @@ def form_remover_produto(self):
     Button(frame_remover, text="Voltar ao menu anterior", command=frame_remover.destroy, bg='#363636', fg='white').place(relx=0.02, rely=0.88, relwidth=0.3, relheight=0.1)
 
 def ver_estoque(frame_verestoque):
-    organizar_estoque(frame_verestoque)
+    ver_estoque_interface(frame_verestoque)
 
 def voltar_menu_principal_estoque(frame_estoque, frame_main):
     frame_estoque.place_forget()  # Oculta o frame atual
